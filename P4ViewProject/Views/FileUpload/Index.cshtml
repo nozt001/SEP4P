@@ -1,0 +1,71 @@
+﻿@model IEnumerable<string>
+
+@{
+    ViewBag.Title = "Index";
+}
+<br>
+
+<div class="container">
+    <div class="panel panel-primary">
+        <div class="panel-heading">
+            <h3>Upload CSV Files</h3>
+        </div>
+        <div class="panel-body well">
+            @using (Html.BeginForm("Index", "FileUpload", FormMethod.Post, new { enctype = "multipart/form-data" }))
+            {
+                <div class="row">
+                    <div class="col-md-4">
+                        <input type="File" name="file" id="file" value="Choose File" class="btn btn-primary btn-lg" />
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <span class="glyphicon glyphicon-upload"></span> Upload
+                        </button>
+                    </div>
+
+                </div>
+            }
+
+            <hr>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>File Name</th>
+                        <th>File Size</th>
+                        <th>File Date</th>
+                        <th>Operations</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                    @foreach (var fName in Model)
+                    {
+                        <tr>
+                            @{var name = fName;
+                              var link = @Url.Content("~/App_Data/UploadedFiles/") + name.Replace(" ", "%20");
+                              var dataFile = Server.MapPath("~/App_Data/UploadedFiles/" + name);
+                              
+                              FileInfo fInfo = new FileInfo(dataFile);
+                              string fileSize = (fInfo.Length).ToString();
+                              string fileDate = (fInfo.CreationTime).ToString();
+                              
+                            <td>
+                                @Html.ActionLink( @fName, "ViewCsvData", new { filename = @fName }) 
+                            </td>
+                                <td>
+                                    @fileSize bytes
+                                </td>
+                                <td>
+                                    @fileDate
+                                </td>
+                                <td>
+                                    @Html.ActionLink("Delete", "Delete", new { filename = @fName })
+                                </td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

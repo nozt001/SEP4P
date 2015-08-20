@@ -1,0 +1,6 @@
+ID,Lastname,FirstMidName,EnrollmentDate,XX,YY,ZZ
+1,last1,Adam,17/08/2015,XX,YY,ZZ
+2,last2,Eva,18/08/2015,XX,YY,ZZ
+3,last3,John,19/08/2015,XX,YY,ZZ
+4,last4,Marry,20/08/2015,XX,YY,ZZ
+5,last5,Hans,21/08/2015,XX,YY,ZZ

@@ -1,0 +1,96 @@
+﻿@using P4ViewProject.Models;
+
+@*  @ @model IEnumerable<Student> *@
+
+@model P4ViewProject.Controllers.ViewDataViewModel
+@{
+    var result = "";
+    Array userData = null;
+    char[] delimiterChar = { ',' };
+    var dataFile = Server.MapPath("~/App_Data/UploadedFiles/" + @Model.Filename);
+    if (File.Exists(dataFile))
+    {
+        userData = File.ReadAllLines(dataFile);
+
+        if (userData == null)
+        {
+            //empty file
+            result = "The file is empty.";
+        }
+    }
+    else
+    {
+        //File does not exist.
+        result = "The file does not exist.";
+    }
+}
+
+@*
+    The first Row of the each csv table can be table header and organize this one,
+*@
+
+    <div class="container">
+        <div class="alert alert-success" role="alert"><h4>@Model.Filename</h4></div>
+        <table class="table">
+            @{bool headerLine = true; }
+            @foreach (string dataLine in userData)
+            {
+                <tr>
+
+                    @foreach (string dataItem in dataLine.Split(delimiterChar))
+                    {
+                        if (headerLine)
+                        {
+                            <th>
+                                @dataItem
+                            </th>
+                        }
+                        else
+                        {
+                            <td>
+                                @dataItem
+                            </td>
+                        }
+                    }
+                    @{headerLine = false;}
+                </tr>
+            }
+
+        </table>
+        <ul class="pagination">
+            <li><a href="#">&laquo;</a></li>
+            <li class="active"><a href="#">1</a></li>
+            <li><a href="#">2</a></li>
+            <li><a href="#">3</a></li>
+            <li><a href="#">4</a></li>
+            <li><a href="#">&raquo;</a></li>
+        </ul>
+    </div>
+    @* // from previous workk
+        @{    ViewBag.Title = "View Data";
+        }
+
+        <h2>View Data</h2>
+
+        <h3>ViewBag.fname:</h3>
+        <h4>@ViewBag.fname</h4>
+
+        @{
+            if (Model != null) { <p>File Name: @Model</p> }
+              else{ <p> "Null"</p>}
+        }
+
+        <br />
+
+        <table>
+            <thead>
+                <tr>ID</tr>
+                <tr>Last Name</tr>
+                <tr>First Name</tr>
+                <tr>Enrollment Date</tr>
+            </thead>
+            @foreach(var c in Model.students){
+
+            }
+        </table>
+    *@
