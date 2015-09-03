@@ -31,15 +31,17 @@
                 <thead>
                     <tr>
                         <th>File Name</th>
+                        <th>Import into Database</th>
                         <th>File Size</th>
                         <th>File Date</th>
                         <th>Operations</th>
                     </tr>
                 </thead>
                 <tbody>
-
+                    @{ var count = 0;}
                     @foreach (var fName in Model)
                     {
+                        count++;
                         <tr>
                             @{var name = fName;
                               var link = @Url.Content("~/App_Data/UploadedFiles/") + name.Replace(" ", "%20");
@@ -48,19 +50,24 @@
                               FileInfo fInfo = new FileInfo(dataFile);
                               string fileSize = (fInfo.Length).ToString();
                               string fileDate = (fInfo.CreationTime).ToString();
-                              
-                            <td>
-                                @Html.ActionLink( @fName, "ViewCsvData", new { filename = @fName }) 
-                            </td>
+
+                                <td><span class="label label-primary">@count</span> 
+                                    <span> </span>
+                                    @Html.ActionLink(@fName, "ViewCsvData", new {filename = @fName})
+                                </td>
+                                <td>
+                                    @Html.ActionLink("Import to DB", "ImportCsvToDb", new { filename = @fName })
+                                </td>
+                                
                                 <td>
                                     @fileSize bytes
                                 </td>
                                 <td>
                                     @fileDate
                                 </td>
-                                <td>
-                                    @Html.ActionLink("Delete", "Delete", new { filename = @fName })
+                                <td>   @Html.ActionLink("Delete", "Delete", new { filename = @fName })
                                 </td>
+                                
                             }
                         </tr>
                     }

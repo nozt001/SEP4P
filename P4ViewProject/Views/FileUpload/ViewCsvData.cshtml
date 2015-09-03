@@ -1,7 +1,5 @@
 ﻿@using P4ViewProject.Models;
 
-@*  @ @model IEnumerable<Student> *@
-
 @model P4ViewProject.Controllers.ViewDataViewModel
 @{
     var result = "";
@@ -12,7 +10,7 @@
     {
         userData = File.ReadAllLines(dataFile);
 
-        if (userData == null)
+        if (userData.Length < 1)
         {
             //empty file
             result = "The file is empty.";
@@ -30,7 +28,9 @@
 *@
 
     <div class="container">
-        <div class="alert alert-success" role="alert"><h4>@Model.Filename</h4></div>
+    <div class="panel panel-primary">
+
+        <div class="panel-heading">@Model.Filename</div>
         <table class="table">
             @{bool headerLine = true; }
             @foreach (string dataLine in userData)
@@ -66,31 +66,5 @@
             <li><a href="#">&raquo;</a></li>
         </ul>
     </div>
-    @* // from previous workk
-        @{    ViewBag.Title = "View Data";
-        }
+</div>
 
-        <h2>View Data</h2>
-
-        <h3>ViewBag.fname:</h3>
-        <h4>@ViewBag.fname</h4>
-
-        @{
-            if (Model != null) { <p>File Name: @Model</p> }
-              else{ <p> "Null"</p>}
-        }
-
-        <br />
-
-        <table>
-            <thead>
-                <tr>ID</tr>
-                <tr>Last Name</tr>
-                <tr>First Name</tr>
-                <tr>Enrollment Date</tr>
-            </thead>
-            @foreach(var c in Model.students){
-
-            }
-        </table>
-    *@

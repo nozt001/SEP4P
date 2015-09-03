@@ -1,0 +1,150 @@
+﻿
+@using System.Text.RegularExpressions
+@using P4ViewProject.Models;
+
+@model P4ViewProject.Controllers.ViewDataViewModel
+@{
+    var result = "";
+    string[] colNames = new []{""};
+    string[] firstLine = new []{""};
+   
+    char[] delimiterChar = { ',' };
+    var dataFile = Server.MapPath("~/App_Data/UploadedFiles/" + @Model.Filename);
+    string line = string.Empty;
+    
+    if (File.Exists(dataFile))
+    {
+        StreamReader stReader = new StreamReader(dataFile);
+        
+        // work out where we should split on comma, but not in a sentence
+        Regex r = new Regex(",(?=(?:[^\"]*\"[^\"]*\")*(?![^\"]*\"))");
+
+        //Read the first line and split the string at , with our regular expression in to an array
+        line = stReader.ReadLine();
+        //we add the temporal dates here before dynamically adding the columns
+        line = line + ",ValidFrom" + ",ValidTo";
+
+        //splite the line
+        colNames = r.Split(line);
+
+        //Reading the first line to show what kind of value we have for each column
+        line = stReader.ReadLine();
+        line = line + ",VF" + ",VT";
+        //splite the line
+        firstLine = r.Split(line);
+    }
+    else
+    {
+        //File does not exist.
+        result = "The file does not exist.";
+    }
+}
+
+@{
+    ViewBag.Title = "ImportCsvToDb";
+    List<TableInfo> tableInfos= ViewBag.TableInfo;
+}
+
+
+<h3>@ViewData["Feedback"] </h3>
+<div class="container">
+    <div class="row">
+
+        <div class="alert alert-info fade in">
+            <a href="#" class="close" data-dismiss="alert">&times;</a>
+            <p>The definition below shows the table schema in the database and the csv file structure that si to be imported.</p>
+            <p>The data will be imported if the columns match.</p>
+            <p>For unmatching columns please change the database structure or check the csv file.</p>
+        </div>
+
+        <div class="col-md-8">
+            <div class="panel panel-success">
+                <div class="panel-heading">Table DB Structure</div>
+
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Column Name</th>
+                            <th>Data Type</th>
+                            <th>Maximum Length</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{
+                            foreach (TableInfo tinfo in tableInfos)
+                            {
+                                <tr>
+                                    <td>@tinfo.ColumnName</td>
+                                    <td>@tinfo.DataType</td>
+                                    <td>@tinfo.MaxLength</td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="panel panel-info">
+                <div class="panel-heading">CSV File Structure</div>
+
+                <table class="table table-striped">
+                    <thead>
+
+                        <tr>
+                            <th>Column Name</th>
+                            <th>Data</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{
+                            if (firstLine.Length > 0)
+                            {
+                                for (int i = 0; i < firstLine.Length; i++)
+                                {
+                                    <tr>
+                                        <td>@colNames[i]</td>
+                                        <td>@firstLine[i]</td>
+                                    </tr>
+
+                                }
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-2">
+            <button type="button" class="btn btn-success" name="insertBtn"
+                    onclick="location.href = '@Url.Action("InsertOneFile", "FileUpload", new {filename = @Model.Filename})'">
+                Import into Database
+            </button>
+        </div>
+        <div class="col-lg-10" name="feedback">
+            <script type="text/javascript">
+                $("#insertBtn").click(function() {
+                    $.ajax({
+                        url: '/FileUpload/InsertOneFile',
+                        type: 'POST',
+                        data: 'filename= @Model.Filename',
+                        success: function(data) {
+                            //called when successful
+                        },
+                        error: function(e) {
+                            //called when there is an error
+
+                        }
+                    });
+                });
+            </script>
+
+        </div>
+    </div>
+</div>
+
+
