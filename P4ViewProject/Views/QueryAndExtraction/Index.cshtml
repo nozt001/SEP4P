@@ -208,24 +208,6 @@
                     }
                 });
 
-                ////Save file
-                //if (navigator.appName == "Microsoft Internet Explorer") {
-                //    //Optional: If you run into delimiter issues (where the commas are not interpreted and all data is one cell), then use this line to manually specify the delimeter
-                //    tableString = 'sep=,\r\n' + tableString;
-
-                //    myFrame.document.open("text/html", "replace");
-                //    myFrame.document.write(tableString);
-                //    myFrame.document.close();
-                //    myFrame.focus();
-                //    myFrame.document.execCommand('SaveAs', true, 'data.csv');
-                //} else {
-                //    csvData = 'data:application/csv;charset=utf-8,' + encodeURIComponent(tableString);
-                //    $(event.target).attr({
-                //        'href': csvData,
-                //        'target': '_blank',
-                //        'download': 'my_data.csv'
-                //    });
-                //}
             });
 
             $('#jstree_demo_div').on('select_node.jstree', function (e, data) {
@@ -264,18 +246,32 @@
 
                             console.log('Working till her');
 
+
+                            // Fields Validation
                             if (lastFocus.val() != "" && (textAreaId == "selectBox" || textAreaId == "fromBox")) {
-                                lastFocus.val(lastFocus.val() + ', ' + lsParents);
+                                if (textAreaId == "fromBox" && $("#fromBox").val().indexOf(lsParents) == -1 && lsParents.indexOf(".") == -1){
+                                    lastFocus.val(lastFocus.val() + ', ' + lsParents);
+                                }else if(textAreaId == "selectBox" && lsParents.indexOf(".") != -1){
+                                    lastFocus.val(lastFocus.val() + ', ' + lsParents);
+                                }
                                 if (textAreaId == "selectBox" && $("#fromBox").val().indexOf(lsParents.substring(0,lsParents.indexOf('.'))) == -1){
                                     $("#fromBox").val($("#fromBox").val() + ', ' + lsParents.substring(0,lsParents.indexOf('.')));
                                 }
-                            } else if (textAreaId == "whereBox" || textAreaId == "otherClauseBox") {
+                            } else if ((textAreaId == "whereBox" || textAreaId == "otherClauseBox") && lsParents.indexOf('.') != -1) {
                                 lastFocus.val(lastFocus.val() + lsParents + ' ');
                             } else {
-                                lastFocus.val(lastFocus.val() + lsParents);
-                                if (textAreaId == "selectBox" && $("#fromBox").val().indexOf(lsParents.substring(0,lsParents.indexOf('.'))) == -1){
-                                    $("#fromBox").val($("#fromBox").val() + lsParents.substring(0,lsParents.indexOf('.')));
+                                if (textAreaId == "selectBox" && lsParents.indexOf(".") != -1){
+                                    lastFocus.val(lastFocus.val() + lsParents);
+
+                                    if (textAreaId == "selectBox" && $("#fromBox").val().indexOf(lsParents.substring(0,lsParents.indexOf('.'))) == -1){
+                                        $("#fromBox").val($("#fromBox").val() + lsParents.substring(0,lsParents.indexOf('.')));
+                                    }
                                 }
+                                if (textAreaId == "fromBox" && lsParents.indexOf(".") == -1){
+                                    lastFocus.val(lastFocus.val() + lsParents);
+                                }
+
+                                
                             }
                         }
                     }
