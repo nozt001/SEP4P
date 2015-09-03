@@ -21,11 +21,19 @@ namespace P4ViewProject
 
             bundles.Add(new ScriptBundle("~/bundles/bootstrap").Include(
                       "~/Scripts/bootstrap.js",
-                      "~/Scripts/respond.js"));
+                      "~/Scripts/respond.js",
+                      "~/Scripts/bootstrap-datepicker.js",
+                      "~/Scripts/jstree.js",
+                      "~/Scripts/jquery.highchartTable.js",
+                      "~/Scripts/Highcharts-4.0.1/js/highcharts.js",
+                      "~/Scripts/jquery-ui-1.11.4.js",
+                      "~/Scripts/resize-detector.js"));
 
             bundles.Add(new StyleBundle("~/Content/css").Include(
                       "~/Content/bootstrap.css",
-                      "~/Content/site.css"));
+                      "~/Content/site.css",
+                      "~/Content/datepicker.css",
+                      "~/Content/Jstree/treestyle.css"));
         }
     }
 }

@@ -1,0 +1,41 @@
+﻿@model P4ViewProject.Models.ViewExtractedDataWrapperModel
+@using System.Data;
+
+@Styles.Render("~/Content/css/")
+@Scripts.Render("~/bundles/jquery")
+
+@try
+{
+    <table id="resultsTable" class="table table-striped">
+        <thead>
+            <tr>
+                @foreach (DataColumn col in Model.Data.Columns)
+                {
+                    <th>@col.ColumnName</th>
+                }
+            </tr>
+
+        </thead>
+
+        <tbody>
+            @foreach (DataRow row in Model.Data.Rows)
+            {
+                <tr>
+                    @foreach (DataColumn col in Model.Data.Columns)
+                    {
+
+                        <td>@row[col.ColumnName]</td>
+                    }
+                </tr>
+            }
+
+        </tbody>
+
+
+    </table>
+}
+catch (Exception e)
+{
+    <p>No Results</p>
+}
+

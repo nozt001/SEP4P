@@ -1,0 +1,329 @@
+﻿@model P4ViewProject.Models.ViewExtractedDataWrapperModel
+
+@{
+    ViewBag.Title = "Index";
+}
+
+@Styles.Render("~/Content/css/")
+@Scripts.Render("~/bundles/jquery")
+
+<h2>Query and Extraction Tool</h2>
+
+
+<div class="row">
+    <div class="col col-sm-3">
+        <div class="panel panel-primary">
+            <div class="panel-heading">Query Builder</div>
+            <div class="panel-body" id="queryTreePanel">
+                <div style="left: 4px; position: relative"><img src="../Content/Jstree/database.png" height="15" width="15">@ViewBag.DatabaseName</div>
+                <div id="jstree_demo_div">
+                    <ul>
+                    <!-- in this example the tree is populated from inline HTML -->
+                    @foreach (KeyValuePair<string, List<string>> entry in ViewBag.tableDict)
+                    {
+                        <li data-jstree='{"icon": "../Content/Jstree/dbglyph.PNG"}'>
+                            @entry.Key
+
+                            @if (entry.Value.Count != 0)
+                            {
+                                <ul>
+                                    @foreach (string value in entry.Value)
+                                    {
+                                        if (!value.ToLower().Contains("transaction_date_start") && !value.ToLower().Contains("transaction_date_end")) { 
+                                            <li data-jstree='{"icon": "../Content/Jstree/clglyph.PNG"}'>@value</li>
+                                        }
+                                    }
+                                </ul>
+                            }
+                        </li>
+                    }
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="panel panel-primary">
+            <div class="panel-heading">Previous Extractions</div>
+            <div class="panel-body" style="height: 300px; overflow: auto; padding: 0px">
+                <div class="list-group">
+                    <a href="#" class="list-group-item">
+                        <h4 class="list-group-item-heading">List group item heading</h4>
+                        <p class="list-group-item-text">...</p>
+                    </a>
+                    <a href="#" class="list-group-item">
+                        <h4 class="list-group-item-heading">List group item heading</h4>
+                        <p class="list-group-item-text">...</p>
+                    </a>
+                    <a href="#" class="list-group-item">
+                        <h4 class="list-group-item-heading">List group item heading</h4>
+                        <p class="list-group-item-text">...</p>
+                    </a>
+                    <a href="#" class="list-group-item">
+                        <h4 class="list-group-item-heading">List group item heading</h4>
+                        <p class="list-group-item-text">...</p>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-9 col-xs-12">
+        <div class="panel panel-primary">
+            <div class="panel-heading">Query Database</div>
+            <div id="queryDatabasePanel" class="panel-body container" style="position: relative">
+                    <form id="myForm">
+                        <div class="form-group" style="width: 80%; float: left">
+                            Select <textarea id="selectBox" class="form-control" rows="2" spellcheck="false" placeholder="Select or type fields" name="selectText"></textarea>
+                        </div>
+                        <div class="form-group" style="width: 80%; float: left">
+                            from <textarea id="fromBox" class="form-control" rows="2" spellcheck="false" placeholder="Select or type table names" name="fromText"></textarea>
+                        </div>
+                        <div class="form-group" style="width: 80%; float: left">
+                            where <textarea id="whereBox" class="form-control" rows="4" spellcheck="false" placeholder="Enter conditions" name="whereText"></textarea>
+                        </div>
+                        <div class="form-group" style="width: 80%; float: left">
+                            other clauses <textarea id="otherClauseBox" class="form-control" rows="4" spellcheck="false" placeholder="Enter other clauses" name="otherClauseText"></textarea>
+                        </div>
+                        <!--<button id="runQueryBtn" class="btn btn-primary" type="submit">Run Query</button> -->
+                        <div id ="timedCheckBox" class="checkbox">
+                            <label style="font-family: cursive">
+                                <input id="timeCheckBox" type="checkbox"> Do a timed query
+                            </label>
+                        </div>
+                        <div id ="myDatePicker" class="hero-unit">
+                            <input type="text" placeholder="Select a date" id="startDatePicker" name="startDate">
+                        </div>
+                        <input id="runQueryBtn" type="button" class="btn btn-primary" value="Run Query" />
+                    </form>
+            </div>
+        </div>
+        <div class="panel panel-primary">
+            <div class="panel-heading">Results  <span id="resultsBadge" class="badge" style="color: #428BCA; background-color:#FFFFFF">0</span></div>
+            <div class="panel-body" style="height:300px; position:relative">
+                <section id="partial">    
+                    <span style="font-family: cursive; font-size: large">No Results!</span>
+                </section>
+                
+                <input id="extractToCsvBtn" type="button" class="btn btn-success" value="Extract to CSV"/>
+                <input id="analyseResultsBtn" type="button" onclick="window.location.href = '@Url.Action("AnalyseResults", "QueryAndExtraction")';" class="btn btn-success" value="Analyse Results" />
+
+            </div>
+        </div>
+    </div>
+        
+</div>
+
+<iframe id="my_iframe" style="display:none;"></iframe>
+
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+
+            var lastFocus = undefined;
+            var queryDatabasePanelHeight = $("#queryDatabasePanel").height();
+
+            $("#queryDatabasePanel").resize(function () {
+                $("#queryTreePanel").height($("#queryTreePanel").height() + ($("#queryDatabasePanel").height() - queryDatabasePanelHeight));
+                queryDatabasePanelHeight = $("#queryDatabasePanel").height();
+            });
+
+            $("#runQueryBtn").click(function () {
+                $.ajax({
+                    url: "QueryAndExtraction/ViewData",
+                    type: "post",
+                    data: $("#myForm").serialize(),
+                    success: function (result) {
+                        // console.log(result);
+                        $("#partial").html(result);
+
+                        $.ajax({
+                            url: "QueryAndExtraction/getRows",
+                            type: "get",
+                            success: function (numRows) {
+                                $("#resultsBadge").html(numRows);
+                            }
+                        });
+                    }
+                });
+            });
+
+            $("#timeCheckBox").click(function () {
+                $("#startDatePicker").toggle();
+                $("#startDatePicker").val('');
+            });
+
+            $("#startDatePicker").hide();
+
+            $('#startDatePicker').datepicker({
+                format: "mm/dd/yyyy"
+            });
+
+            // 6 create an instance when the DOM is ready
+            $('#jstree_demo_div').jstree();
+            // 7 bind to events triggered on the tree
+            $('#jstree_demo_div').on("changed.jstree", function (e, data) {
+                console.log(data.selected);
+            });
+
+            $("#extractToCsvBtn").on('click', function (event) {
+                //Get table
+                var table = $("#resultsTable")[0];
+
+                //Get number of rows/columns
+                var rowLength = table.rows.length;
+                var colLength = table.rows[0].cells.length;
+
+                console.log(rowLength + ' ' + colLength);
+
+                //Declare string to fill with table data
+                var tableString = "";
+
+                //Get column headers
+                for (var i = 0; i < colLength; i++) {
+                    tableString += table.rows[0].cells[i].innerHTML.split(",").join("") + ",";
+                }
+
+
+                tableString = tableString.substring(0, tableString.length - 1);
+                tableString += "\r\n";
+
+                //get row data
+                for (var j = 1; j < rowLength; j++) {
+                    for (var k = 0; k < colLength; k++) {
+                        tableString += table.rows[j].cells[k].innerHTML.split(",").join("") + ",";
+                    }
+                    tableString += "\r\n";
+                }
+
+
+
+                console.log(tableString);
+
+                $.ajax({
+                    url: "QueryAndExtraction/CsvData",
+                    type: "post",
+                    data: { 'csvData': tableString },
+                    success: function (result) {
+                        console.log(result);
+                        Download(result);
+
+                    }
+                });
+
+                ////Save file
+                //if (navigator.appName == "Microsoft Internet Explorer") {
+                //    //Optional: If you run into delimiter issues (where the commas are not interpreted and all data is one cell), then use this line to manually specify the delimeter
+                //    tableString = 'sep=,\r\n' + tableString;
+
+                //    myFrame.document.open("text/html", "replace");
+                //    myFrame.document.write(tableString);
+                //    myFrame.document.close();
+                //    myFrame.focus();
+                //    myFrame.document.execCommand('SaveAs', true, 'data.csv');
+                //} else {
+                //    csvData = 'data:application/csv;charset=utf-8,' + encodeURIComponent(tableString);
+                //    $(event.target).attr({
+                //        'href': csvData,
+                //        'target': '_blank',
+                //        'download': 'my_data.csv'
+                //    });
+                //}
+            });
+
+            $('#jstree_demo_div').on('select_node.jstree', function (e, data) {
+                var selectedNode = data;
+                getNodeAndUpdateTextBox(selectedNode);
+            });
+
+            function getNodeAndUpdateTextBox(selectedNode) {
+                try {
+                    var lnLevel = selectedNode.node.parents.length;
+                    var lsSelectedID = selectedNode.node.id;
+                    var loParent = $("#" + lsSelectedID);
+                    var lsParents = '';
+                    for (var ln = 0; ln <= lnLevel - 1 ; ln++) {
+                        var loParent = loParent.parent().parent();
+                        if (loParent.children()[1] != undefined) {
+                            lsParents += loParent.children()[1].text;
+                        }
+                    }
+                    lsParents += selectedNode.node.text;
+
+                    lsParents = lsParents.trim();
+                    if (lsParents.indexOf(" ") != -1) {
+                        lsParents = lsParents.replace(" ", ".");
+                    }
+                    lsParents = lsParents.replace(/[ /\n]+/g, '');
+                    console.log("\"" + lsParents + "\"");
+
+                    if (typeof lastFocus !== typeof undefined) {
+
+                        var textAreaId = lastFocus.attr("id");
+
+                        if (textAreaId == "selectBox" || textAreaId == "fromBox" || textAreaId == "whereBox" || textAreaId == "otherClauseBox") {
+                            lastFocus.focus();
+                            console.log(lastFocus.attr("id"));
+
+                            console.log('Working till her');
+
+                            if (lastFocus.val() != "" && (textAreaId == "selectBox" || textAreaId == "fromBox")) {
+                                lastFocus.val(lastFocus.val() + ', ' + lsParents);
+                                if (textAreaId == "selectBox" && $("#fromBox").val().indexOf(lsParents.substring(0,lsParents.indexOf('.'))) == -1){
+                                    $("#fromBox").val($("#fromBox").val() + ', ' + lsParents.substring(0,lsParents.indexOf('.')));
+                                }
+                            } else if (textAreaId == "whereBox" || textAreaId == "otherClauseBox") {
+                                lastFocus.val(lastFocus.val() + lsParents + ' ');
+                            } else {
+                                lastFocus.val(lastFocus.val() + lsParents);
+                                if (textAreaId == "selectBox" && $("#fromBox").val().indexOf(lsParents.substring(0,lsParents.indexOf('.'))) == -1){
+                                    $("#fromBox").val($("#fromBox").val() + lsParents.substring(0,lsParents.indexOf('.')));
+                                }
+                            }
+                        }
+                    }
+
+
+                    //$('#whereBox').focus();
+
+                    //$('#myQuery').val(lsParents);
+                    //$('#selectBox').is(":focus", function () {
+                    //    $('#selectBox').val(lsParents);
+                    //});
+                    //alert(lsParents);
+                }
+                catch (err) {
+                    alert('Error in getNodeAndUpdateTextBox');
+                }
+            }
+
+
+            $("textarea").focusout(function () {
+                console.log($(this).val());
+                lastFocus = $(this);
+            });
+
+            // data-jstree='{"icon":"./images/tree.png"}'
+        });
+
+        function Download(url) {
+            document.getElementById('my_iframe').src = url;
+        };
+
+        function UpdateMyView() {
+            var xmlHttp = createXMLHttp();
+            // set your controller URL here:
+            xmlHttp.open('get', '/QueryAndExtraction/Index', true);
+            xmlHttp.send(null);
+            xmlHttp.onreadystatechange = function () {
+                if (xmlHttp.readyState === 4) {
+                    if (xmlHttp.status === 200) {
+                        // Set the Id of the container to update here:
+                        document.getElementById('myExtractedData').innerHTML = xmlHttp.responseText;
+                    } else {
+                        alert('Error: ' + xmlHttp.responseText);
+                    }
+                } else {
+                    //still loading
+                }
+            };
+        }
+
+    </script>

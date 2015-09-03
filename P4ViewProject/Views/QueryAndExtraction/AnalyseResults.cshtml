@@ -1,0 +1,300 @@
+﻿@model P4ViewProject.Models.ViewExtractedDataWrapperModel
+
+@{
+    ViewBag.Title = "AnalyseResults";
+}
+
+@Styles.Render("~/Content/css/")
+@Scripts.Render("~/bundles/jquery")
+
+<h2>AnalyseResults</h2>
+
+<div class="row">
+    <div class="col-sm-3">
+        <div class="panel panel-primary">
+            <div class="panel-heading">Resultant Data</div>
+            <div class="panel-body" id="resultsTreePanel">
+                <div id="jstree_demo_div">
+                    <ul>
+                        <!-- in this example the tree is populated from inline HTML -->
+                        @foreach (KeyValuePair<string, List<string>> entry in ViewBag.resultTableDict)
+                        {
+                            <li data-jstree='{"icon": "../Content/Jstree/dbglyph.PNG"}'>
+                                @entry.Key
+
+                                @if (entry.Value.Count != 0)
+                                {
+                                    <ul>
+                                        @foreach (string value in entry.Value)
+                                        {
+                                            <li data-jstree='{"icon": "../Content/Jstree/clglyph.PNG"}'>@value</li>
+                                        }
+                                    </ul>
+                                }
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-9">
+        <div class="panel panel-primary">
+            <div class="panel-heading">Select Chart</div>
+            <div class="panel-body">
+                <div id="chartSelector" class="btn-group" role="group" aria-label="...">
+                    <button type="button" id="pieBtn" class="btn btn-default chartSelectorBtn"><img src="../Content/Graphs/Pie.PNG" class="chartBtnImage" /></button>
+                    <button type="button" id="barBtn" class="btn btn-default chartSelectorBtn"><img src="../Content/Graphs/Bar.PNG" class="chartBtnImage" /></button>
+                    <button type="button" id="scatterBtn" class="btn btn-default chartSelectorBtn"><img src="../Content/Graphs/Line.PNG" class="chartBtnImage" /></button>
+                </div>
+                <br />
+                <div class="panel-footer" id="chartParameterInput" style="display: none; background-color:white">
+                    <span id="chartParameterText" style="font-size: medium; font-family: serif"></span><br />
+                    <input type="text" id="firstParameter" class="graphTextParameter" placeholder="Select or type a field name" />
+                    <input type="text" id="secondParameter" class="graphTextParameter" placeholder="Select or type a field name" />
+                    <input type="text" id="thirdParameter" class="graphTextParameter" placeholder="Select or type a field name" />
+                    <input type="button" id="generateGraphBtn" class="btn btn-primary" value="Generate Chart" />
+                </div>
+            </div>
+            <div id="alertDiv" style="margin-left: 10px; margin-right: 10px"></div>
+        </div>
+        <div id="graphContainer" class="panel">
+            <img src="../Content/Graphs/graph-placeholder.jpg" style="width: 100%; height: 100%;" />
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+
+        var lastFocus = undefined;
+        var selectedChartType = undefined;
+        // 6 create an instance when the DOM is ready
+        $('#jstree_demo_div').jstree();
+
+        $("#chartSelector button").click(function () {
+            $('#chartParameterInput').slideDown();
+            $('#graphContainer').animate({ height: "453", top: "+=55" }, "slow");
+            selectedChartType = $(this).attr('id');
+
+            if (selectedChartType == 'pieBtn') {
+                $("#chartParameterText").html('Select Pie Chart Parameter');
+                $("#firstParameter").attr('placeholder', 'Select pie chart parameter');
+                $("#secondParameter").val("");
+                $("#secondParameter").hide();
+                $("#thirdParameter").val("");
+                $("#thirdParameter").hide();
+            } else if (selectedChartType == 'barBtn') {
+                $("#chartParameterText").html('Select Bar Chart Parameters');
+                $("#firstParameter").attr('placeholder', 'Select x-axis parameter');
+                $("#secondParameter").attr('placeholder', 'Select y-axis parameter (Optional)');
+                $("#secondParameter").show();
+                $("#thirdParameter").hide();
+                $("#thirdParameter").val("");
+            } else if (selectedChartType == 'scatterBtn') {
+                $("#chartParameterText").html('Select Scatter Chart Parameters');
+                $("#firstParameter").attr('placeholder', 'Select x-axis parameter');
+                $("#secondParameter").attr('placeholder', 'Select y-axis parameter');
+                $("#thirdParameter").attr('placeholder', 'Select category parameter (Optional)');
+                $("#secondParameter").show();
+                $("#thirdParameter").show();
+            }
+        });
+
+        $('#jstree_demo_div').on('select_node.jstree', function (e, data) {
+            var selectedNode = data;
+            getNodeAndUpdateTextBox(selectedNode);
+        });
+
+
+
+        function getNodeAndUpdateTextBox(selectedNode) {
+            try {
+                var lnLevel = selectedNode.node.parents.length;
+                var lsSelectedID = selectedNode.node.id;
+                var loParent = $("#" + lsSelectedID);
+                var lsParents = '';
+                for (var ln = 0; ln <= lnLevel - 1 ; ln++) {
+                    var loParent = loParent.parent().parent();
+                    if (loParent.children()[1] != undefined) {
+                        lsParents += loParent.children()[1].text;
+                    }
+                }
+                lsParents += selectedNode.node.text;
+
+                lsParents = lsParents.trim();
+                if (lsParents.indexOf(" ") != -1) {
+                    lsParents = lsParents.replace(" ", ".");
+                }
+                lsParents = lsParents.replace(/[ /\n]+/g, '');
+                console.log("\"" + lsParents + "\"");
+
+                if (typeof lastFocus !== typeof undefined) {
+
+                    var inputAreaId = lastFocus.attr("id");
+
+                    if (inputAreaId == "firstParameter") {
+                        lastFocus.focus();
+                        $("#firstParameter").val(lsParents.substring(lsParents.indexOf('.') + 1));
+                    } else if (inputAreaId == "secondParameter") {
+                        lastFocus.focus();
+                        $("#secondParameter").val(lsParents.substring(lsParents.indexOf('.') + 1));
+                    } else if (inputAreaId == "thirdParameter") {
+                        lastFocus.focus();
+                        $("#thirdParameter").val(lsParents.substring(lsParents.indexOf('.') + 1));
+                    }
+
+                }
+
+            }
+            catch (err) {
+                alert('Error in getNodeAndUpdateTextBox');
+            }
+        }
+
+
+        $("input").focusout(function () {
+            console.log($(this).val());
+            lastFocus = $(this);
+        });
+
+        $("#generateGraphBtn").click(function () {
+
+            try {
+                if (selectedChartType == 'pieBtn') {
+                    if ($("#firstParameter").val() == "") {
+                        throw "Please enter a parameter";
+                    }
+
+                    generatePieChart();
+                } else if (selectedChartType == 'barBtn') {
+                    if ($("#firstParameter").val() == "") {
+                        throw "Please enter a x-axis parameter";
+                    }
+                } else if (selectedChartType == 'scatterBtn') {
+                    if ($("#firstParameter").val() == "") {
+                        throw "Please enter a x-axis parameter";
+                    }
+                    if ($("#secondParameter").val() == "") {
+                        throw "Please enter a y-axis parameter";
+                    }
+                }
+            } catch (err) {
+                $('#alertDiv').hide();
+                $("#alertDiv").html('<div class="alert alert-danger">' + err + '</div>');
+                $('#alertDiv').slideDown();
+                setTimeout(function () {
+                    $('#alertDiv').slideUp();
+                }, 2000);
+            }
+
+        });
+
+        function generatePieChart() {
+
+            $.post('@Url.Action("RequestData","QueryAndExtraction")', { colName: $("#firstParameter").val() }, function (data, status) {
+                if (status == 'success') {
+
+                    var columnName = $("#firstParameter").val();
+                    var graphData = String(data);
+
+                    if (graphData == "") {
+                        throw "Enter a valid parameter name";
+                    }
+
+                    // Break data
+                    graphData = graphData.split(",");
+
+                    // Create key value pairs
+                    var graphAssociativeData = {};
+
+                    for (var i = 0; i < graphData.length; i++) {
+                        if (graphAssociativeData[graphData[i]] == undefined) {
+                            graphAssociativeData[graphData[i]] = 1;
+                        } else {
+                            graphAssociativeData[graphData[i]] += 1;
+                        }
+                    }
+
+                    //console.log(graphAssociativeData);
+
+                    var keys = [];
+                    for (var key in graphAssociativeData) {
+                        if (graphAssociativeData.hasOwnProperty(key)) {
+                            keys.push(key);
+                        }
+                    }
+
+                    
+
+                    var plotData = [];
+                    var isFirstIteration = true;
+                    for (var i = 0; i < keys.length; i++) {
+                        if (!isFirstIteration) {
+                            var temp = { name: keys[i], y: graphAssociativeData[keys[i]] };
+                        } else {
+                            var temp = { name: keys[i], y: graphAssociativeData[keys[i]], sliced:true, selected:true };
+                        }
+                        plotData.push(temp);
+                        isFirstIteration = false;
+                    }
+
+                    console.log(plotData);
+
+                    var myseries = [{
+                        name: columnName,
+                        colorByPoint: true,
+                        data: plotData
+                    }];
+
+                    // Build the chart
+                    $('#graphContainer').highcharts({
+                        chart: {
+                            plotBackgroundColor: null,
+                            plotBorderWidth: null,
+                            plotShadow: false,
+                            type: 'pie'
+                        },
+                        title: {
+                            text: 'Pie Chart : ' + columnName
+                        },
+                        tooltip: {
+                            pointFormat: '<b>{point.percentage:.1f}%</b>'
+                        },
+                        plotOptions: {
+                            pie: {
+                                allowPointSelect: true,
+                                cursor: 'pointer',
+                                dataLabels: {
+                                    enabled: false
+                                },
+                                showInLegend: true
+                            }
+                        },
+                        series: myseries
+                    });
+                }
+            });
+
+        }
+
+        // 7 bind to events triggered on the tree
+        //$('#jstree_demo_div').on("changed.jstree", function (e, data) {
+        //    console.log(data.selected);
+        //});
+
+        //$("#jstree_demo_div").jstree(options).on('loaded.jstree', function () {
+        //    $("#jstree_demo_div").jstree('open_all');
+        //});
+
+        //$("#jstree_demo_div").bind("loaded.jstree", function (event, data) {
+        //    // you get two params - event & data - check the core docs for a detailed description
+        //    $(this).jstree("open_all");
+        //});
+
+        //JavaScript Chart Code Starts Here
+
+    });
+
+</script>

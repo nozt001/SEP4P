@@ -7,6 +7,9 @@
 .body-content {
     padding-left: 15px;
     padding-right: 15px;
+    margin-left: 10px;
+    margin-right: 10px;
+    max-width: 2000px;
 }
 
 /* Override the default bootstrap behavior where horizontal description lists 
@@ -17,8 +20,109 @@
 }
 
 /* Set width on the form input elements since they're 100% wide by default */
-input,
-select,
 textarea {
-    max-width: 280px;
+    resize: vertical;
+    font-size: medium;
+    font-family: monospace;
+}
+
+.graphTextParameter{
+    font-size: small;
+    font-family: monospace;
+    width: 244px;
+    margin-right: 20px;
+}
+
+#runQueryBtn {
+    position: absolute;
+    width: 15%;
+    box-shadow: 2px 2px 2px black; 
+    bottom: 32px;
+    right: 3%;
+}
+
+#timedCheckBox {
+    position: absolute;
+    right: 50px;
+}
+
+
+#myDatePicker {
+    position: absolute;
+    top: 50px;
+    right: 10px;
+}
+
+.panel {
+    box-shadow: 2px 2px 2px black;
+}
+
+.table {
+    overflow: auto;
+}
+
+#queryTreePanel {
+    height: 465px;
+    overflow: auto;
+}
+
+#resultsTreePanel {
+    height: 690px;
+    overflow: auto;
+}
+
+#partial {
+    width: 85%;
+    height: 274px;
+    overflow: auto;
+    border-color: #428BCA;
+    border-style: solid;
+    border-width: thin;
+    border-radius: 0px 0px 4px 4px;
+    padding: 2px 10px;
+    overflow: auto;
+}
+
+#extractToCsvBtn {
+    right: 1.5%;
+    bottom: 40px;
+    position: absolute;
+    height: 90px;
+    width: 126px;
+}
+
+#analyseResultsBtn {
+    right: 1.5%;
+    bottom: 171px;
+    position: absolute;
+    height: 90px;
+    width: 126px;
+}
+
+#chartSelector {
+    width: 100%;
+}
+
+.chartSelectorBtn {
+    width: 33.3%;
+}
+
+.chartBtnImage {
+    height: 100px;
+}
+
+#generateGraphBtn {
+    width: 100px;
+    font-size: 12px;
+    padding-right: 0px;
+    padding-left: 0px;
+}
+
+#graphContainer {
+    border-color: #0D497D;
+    height: 527px;
+}
+
+.extrationsListItem {
+    width: 100%;
 }

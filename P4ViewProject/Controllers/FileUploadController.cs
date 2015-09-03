@@ -122,11 +122,12 @@ namespace P4ViewProject.Controllers
 
             SqlConnection.ConnectionString = ConfigurationManager.ConnectionStrings["ViewSimulation"].ConnectionString;
             SqlConnection.Open();
+            string fname = filename.Substring(0, filename.LastIndexOf(".csv"));
 
             cmd.Connection = SqlConnection;
             cmd.CommandText = "SELECT COLUMN_NAME, DATA_TYPE , CHARACTER_MAXIMUM_LENGTH" 
                              + " FROM INFORMATION_SCHEMA.COLUMNS "
-                             + " WHERE TABLE_NAME='MyTable' "
+                             + " WHERE TABLE_NAME= ViewSimulation." + "PATIENT"
                              + " ORDER BY ORDINAL_POSITION";
 
             myReader = cmd.ExecuteReader(CommandBehavior.KeyInfo);
