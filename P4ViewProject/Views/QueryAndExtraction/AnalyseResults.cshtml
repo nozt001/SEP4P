@@ -181,6 +181,7 @@
                     if ($("#secondParameter").val() == "") {
                         throw "Please enter a y-axis parameter";
                     }
+                    generateScatterChart();
                 }
             } catch (err) {
                 showErrorMessage(err);
@@ -368,7 +369,7 @@
                                         } else {
                                             var temp = [];
                                             for (var i = 0; i < graphSecondColumnData.length; i++) {
-                                                temp.push(parseInt(graphSecondColumnData[i]));
+                                                temp.push(parseFloat(graphSecondColumnData[i]));
                                             }
                                             graphSecondColumnData = temp;
                                         }
@@ -660,24 +661,155 @@
         }
 
         function generateScatterChart() {
+            $.post('@Url.Action("RequestData","QueryAndExtraction")', { colName: $("#firstParameter").val() }, function (data, status) {
+                if (status == 'success') {
+                    var firstColumnName = $("#firstParameter").val();
+                    var graphFirstColumnData = String(data);
 
+                    try {
+                        if (graphFirstColumnData == '') {
+                            throw "Enter a valid x-axis parameter";
+                        }
+                        
+                        // Break data
+                        graphFirstColumnData = graphFirstColumnData.split(",");
+                        console.log(graphFirstColumnData);
+
+                        if (isNaN(graphFirstColumnData[0])) {
+                            throw "X-axis parameter should contain numerical values"
+                        }
+
+                        $.post('@Url.Action("RequestData","QueryAndExtraction")', { colName: $("#secondParameter").val() }, function (data, status) {
+                            if (status = 'success') {
+                                var secondColumnName = $("#secondParameter").val();
+                                var graphSecondColumnData = String(data);
+
+                                try {
+                                    if (graphSecondColumnData == '') {
+                                        throw "Enter a valid y-axis parameter";
+                                    }
+
+                                    // Break data
+                                    graphSecondColumnData = graphSecondColumnData.split(",");
+
+                                    if (isNaN(graphSecondColumnData[0])) {
+                                        throw "Y-axis parameter should contain numerical values";
+                                    }
+
+                                    // Categorising Parameter Specified
+                                    if ($('#thirdParameter').val() != '') {
+                                        $.post('@Url.Action("RequestData","QueryAndExtraction")', { colName: $("#thirdParameter").val() }, function (data, status) {
+                                            if (status == 'success') {
+                                                var thirdColumnName = $("#thirdParameter").val();
+                                                var graphThirdColumnData = String(data);
+
+
+                                            }
+                                        });
+                                    }
+
+
+                                    //No categorising parameter
+                                    else {
+
+                                        var plotdata = [];
+                                        for (var i = 0; i < graphFirstColumnData.length; i++) {
+                                            plotdata.push([parseFloat(graphFirstColumnData[i]), parseFloat(graphSecondColumnData[i])]);
+                                        }
+
+                                        var myseries = [{
+                                            name: 'Patient',
+                                            color: 'rgba(119, 152, 191, .5)',
+                                            data: plotdata
+                                        }];
+
+                                        console.log("Is this printing?");
+                                        
+                                        $('#graphContainer').highcharts({
+                                            chart: {
+                                                type: 'scatter',
+                                                zoomType: 'xy'
+                                            },
+                                            title: {
+                                                text: firstColumnName + ' vs ' + secondColumnName
+                                            },
+                                            xAxis: {
+                                                title: {
+                                                    enabled: true,
+                                                    text: firstColumnName
+                                                },
+                                                startOnTick: true,
+                                                endOnTick: true,
+                                                showLastLabel: true
+                                            },
+                                            yAxis: {
+                                                title: {
+                                                    text: secondColumnName
+                                                }
+                                            },
+                                            legend: {
+                                                layout: 'vertical',
+                                                align: 'left',
+                                                verticalAlign: 'top',
+                                                x: 100,
+                                                y: 70,
+                                                floating: true,
+                                                backgroundColor: (Highcharts.theme && Highcharts.theme.legendBackgroundColor) || '#FFFFFF',
+                                                borderWidth: 1
+                                            },
+                                            plotOptions: {
+                                                scatter: {
+                                                    marker: {
+                                                        radius: 5,
+                                                        states: {
+                                                            hover: {
+                                                                enabled: true,
+                                                                lineColor: 'rgb(100,100,100)'
+                                                            }
+                                                        }
+                                                    },
+                                                    states: {
+                                                        hover: {
+                                                            marker: {
+                                                                enabled: false
+                                                            }
+                                                        }
+                                                    },
+                                                    tooltip: {
+                                                        headerFormat: '<b>{series.name}</b><br>',
+                                                        pointFormat: '{point.x} cm, {point.y} kg'
+                                                    }
+                                                }
+                                            },
+                                            series: myseries
+                                        });
+
+                                    }
+                                } catch (err) {
+                                    showErrorMessage(err);
+                                }
+
+                            }
+                        });
+
+                    } catch (err){
+                        showErrorMessage(err);
+                    }
+                }
+            });
         }
 
-        // 7 bind to events triggered on the tree
-        //$('#jstree_demo_div').on("changed.jstree", function (e, data) {
-        //    console.log(data.selected);
-        //});
+        // Stack overflow code for generating random color
+        function getRandomColor() {
+            var letters = '0123456789ABCDEF'.split('');
+            var color = '#';
+            for (var i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        }
 
-        //$("#jstree_demo_div").jstree(options).on('loaded.jstree', function () {
-        //    $("#jstree_demo_div").jstree('open_all');
-        //});
-
-        //$("#jstree_demo_div").bind("loaded.jstree", function (event, data) {
-        //    // you get two params - event & data - check the core docs for a detailed description
-        //    $(this).jstree("open_all");
-        //});
-
-        //JavaScript Chart Code Starts Here
+        // Method to show banner in chart exceptions
         function showErrorMessage(err) {
             $('#alertDiv').hide();
             $("#alertDiv").html('<div class="alert alert-danger">' + err + '</div>');
