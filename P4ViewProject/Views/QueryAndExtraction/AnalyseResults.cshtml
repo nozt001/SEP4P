@@ -370,6 +370,7 @@
                                             for (var i = 0; i < graphSecondColumnData.length; i++) {
                                                 temp.push(parseInt(graphSecondColumnData[i]));
                                             }
+                                            graphSecondColumnData = temp;
                                         }
 
                                         // Create key value pairs
@@ -392,6 +393,112 @@
                                             }
                                         }
 
+                                        // If column has data that are integers and keys are too many, then try to group data
+                                        if (keys.length >= 10 && !isNaN(graphFirstColumnData[0])) {
+                                            var tempData = [];
+                                            for (var i = 0; i < graphFirstColumnData.length; i++) {
+                                                tempData.push(parseInt(graphFirstColumnData[i]));
+                                            }
+                                            var min = tempData.reduce(function (a, b, i, tempData) { return Math.min(a, b) });
+                                            var max = tempData.reduce(function (a, b, i, tempData) { return Math.max(a, b) });
+
+                                            console.log(min, max);
+
+                                            min -= min % 10;
+                                            max += 10 - (max % 10);
+                                            var groupSize = (max - min) / 10;
+                                            groupSize += 10 - groupSize % 10
+
+                                            //create a associative array with this group size
+                                            var tempAssociativeArray = {};
+                                            var checkArray = [];
+                                            for (var i = 0; i < (max - min) / groupSize; i++) {
+                                                tempAssociativeArray[i * groupSize + min + '-' + (i * groupSize + min + groupSize - 1)] = 0;
+                                                checkArray[i] = i * groupSize + min;
+                                            }
+
+                                            console.log(checkArray);
+
+                                            for (var i = 0; i < tempData.length; i++) {
+                                                var lastValue = checkArray[0];
+                                                for (var j = 0; j < checkArray.length; j++) {
+                                                    if (checkArray[j] > tempData[i]) {
+                                                        break;
+                                                    }
+                                                    lastValue = checkArray[j];
+                                                }
+
+                                                console.log(lastValue);
+
+                                                tempAssociativeArray[lastValue + '-' + (lastValue + groupSize - 1)] = (tempAssociativeArray[lastValue + '-' + (lastValue + groupSize - 1)] + graphSecondColumnData[i])/2;
+                                            }
+
+                                            console.log(tempAssociativeArray);
+
+
+                                            //console.log(graphAssociativeData);
+
+                                            keys = [];
+                                            for (var key in tempAssociativeArray) {
+                                                if (tempAssociativeArray.hasOwnProperty(key)) {
+                                                    keys.push(key);
+                                                }
+                                            }
+
+                                            graphAssociativeData = tempAssociativeArray;
+
+                                        }
+
+                                        var plotData = [];
+                                        for (var i = 0; i < keys.length; i++) {
+                                            temp = graphAssociativeData[keys[i]];
+                                            plotData.push(temp);
+                                        }
+
+                                        //console.log(plotData);
+
+                                        var myseries = [{
+                                            name: secondColumnName,
+                                            data: plotData
+                                        }];
+
+                                        console.log(keys);
+                                        console.log(plotData);
+
+                                        $('#graphContainer').highcharts({
+                                            chart: {
+                                                type: 'column'
+                                            },
+                                            title: {
+                                                text: firstColumnName + ' vs ' + secondColumnName 
+                                            },
+                                            xAxis: {
+                                                title: firstColumnName,
+                                                categories: keys,
+                                                crosshair: true
+                                            },
+                                            yAxis: {
+                                                min: 0,
+                                                title: {
+                                                    text: secondColumnName
+                                                }
+                                            },
+                                            //tooltip: {
+                                            //    headerFormat: '<span style="font-size:10px">{point.key}</span><table>',
+                                            //    pointFormat: '<tr><td style="color:{series.color};padding:0">{series.name}: </td>' +
+                                            //        '<td style="padding:0"><b>{point.y:.1f} mm</b></td></tr>',
+                                            //    footerFormat: '</table>',
+                                            //    shared: true,
+                                            //    useHTML: true
+                                            //},
+                                            plotOptions: {
+                                                column: {
+                                                    pointPadding: 0.2,
+                                                    borderWidth: 0
+                                                }
+                                            },
+                                            series: myseries
+                                        });
 
 
                                         
@@ -509,6 +616,7 @@
                                     text: firstColumnName
                                 },
                                 xAxis: {
+                                    title: firstColumnName,
                                     categories: keys,
                                     crosshair: true
                                 },
