@@ -451,8 +451,8 @@
 
                                         var plotData = [];
                                         for (var i = 0; i < keys.length; i++) {
-                                            temp = graphAssociativeData[keys[i]];
-                                            plotData.push(temp);
+                                            var temp = graphAssociativeData[keys[i]];
+                                            plotData.push(Math.round(temp * 100) / 100);
                                         }
 
                                         //console.log(plotData);
