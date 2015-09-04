@@ -200,133 +200,133 @@
                             throw "Enter a valid parameter name";
                         }
 
-                            // Break data
-                            graphData = graphData.split(",");
+                        // Break data
+                        graphData = graphData.split(",");
 
-                            // Create key value pairs
-                            var graphAssociativeData = {};
+                        // Create key value pairs
+                        var graphAssociativeData = {};
 
-                            for (var i = 0; i < graphData.length; i++) {
-                                if (graphAssociativeData[graphData[i]] == undefined) {
-                                    graphAssociativeData[graphData[i]] = 1;
-                                } else {
-                                    graphAssociativeData[graphData[i]] += 1;
-                                }
+                        for (var i = 0; i < graphData.length; i++) {
+                            if (graphAssociativeData[graphData[i]] == undefined) {
+                                graphAssociativeData[graphData[i]] = 1;
+                            } else {
+                                graphAssociativeData[graphData[i]] += 1;
                             }
+                        }
+
+                        //console.log(graphAssociativeData);
+
+                        var keys = [];
+                        for (var key in graphAssociativeData) {
+                            if (graphAssociativeData.hasOwnProperty(key)) {
+                                keys.push(key);
+                            }
+                        }
+
+                        // testData = ['5','65','45','3','23','3','102'];
+                        // If column has data that are integers and keys are too many, then try to group data
+                        if (keys.length >= 10 && !isNaN(graphData[0])) {
+                            var tempData = [];
+                            for (var i = 0; i < graphData.length; i++) {
+                                tempData.push(parseInt(graphData[i]));
+                            }
+                            var min = tempData.reduce(function (a, b, i, tempData) { return Math.min(a, b) });
+                            var max = tempData.reduce(function (a, b, i, tempData) { return Math.max(a, b) });
+
+                            console.log(min, max);
+
+                            min -= min % 10;
+                            max += 10 - (max % 10);
+                            var groupSize = (max - min) / 10;
+                            groupSize += 10 - groupSize % 10
+
+                            //create a associative array with this group size
+                            var tempAssociativeArray = {};
+                            var checkArray = [];
+                            for (var i = 0; i < (max - min) / groupSize; i++) {
+                                tempAssociativeArray[i * groupSize + min + '-' + (i * groupSize + min + groupSize - 1)] = 0;
+                                checkArray[i] = i * groupSize + min;
+                            }
+
+                            console.log(checkArray);
+
+                            for (var i = 0; i < tempData.length; i++) {
+                                var lastValue = checkArray[0];
+                                for (var j = 0; j < checkArray.length; j++) {
+                                    if (checkArray[j] > tempData[i]) {
+                                        break;
+                                    }
+                                    lastValue = checkArray[j];
+                                }
+
+                                console.log(lastValue);
+
+                                tempAssociativeArray[lastValue + '-' + (lastValue + groupSize - 1)] += 1;
+                            }
+
+                            console.log(tempAssociativeArray);
+
 
                             //console.log(graphAssociativeData);
 
-                            var keys = [];
-                            for (var key in graphAssociativeData) {
-                                if (graphAssociativeData.hasOwnProperty(key)) {
+                            keys = [];
+                            for (var key in tempAssociativeArray) {
+                                if (tempAssociativeArray.hasOwnProperty(key)) {
                                     keys.push(key);
                                 }
                             }
 
-                            // testData = ['5','65','45','3','23','3','102'];
-                            // If column has data that are integers and keys are too many, then try to group data
-                            if (keys.length >= 10 && !isNaN(graphData[0])) {
-                                var tempData = [];
-                                for (var i = 0; i < graphData.length; i++) {
-                                    tempData.push(parseInt(graphData[i]));
-                                }
-                                var min = tempData.reduce(function (a, b, i, tempData) { return Math.min(a, b) });
-                                var max = tempData.reduce(function (a, b, i, tempData) { return Math.max(a, b) });
+                            graphAssociativeData = tempAssociativeArray;
 
-                                console.log(min, max);
+                        }
 
-                                min -= min % 10;
-                                max += 10 - (max % 10);
-                                var groupSize = (max - min) / 10;
-                                groupSize += 10 - groupSize % 10
-
-                                //create a associative array with this group size
-                                var tempAssociativeArray = {};
-                                var checkArray = [];
-                                for (var i = 0; i < (max - min) / groupSize; i++) {
-                                    tempAssociativeArray[i * groupSize + min + '-' + (i * groupSize + min + groupSize - 1)] = 0;
-                                    checkArray[i] = i * groupSize + min;
-                                }
-
-                                console.log(checkArray);
-
-                                for (var i = 0; i < tempData.length; i++) {
-                                    var lastValue = checkArray[0];
-                                    for (var j = 0; j < checkArray.length; j++) {
-                                        if (checkArray[j] > tempData[i]) {
-                                            break;
-                                        }
-                                        lastValue = checkArray[j];
-                                    }
-
-                                    console.log(lastValue);
-
-                                    tempAssociativeArray[lastValue + '-' + (lastValue + groupSize - 1)] += 1;
-                                }
-
-                                console.log(tempAssociativeArray);
-
-
-                                //console.log(graphAssociativeData);
-
-                                keys = [];
-                                for (var key in tempAssociativeArray) {
-                                    if (tempAssociativeArray.hasOwnProperty(key)) {
-                                        keys.push(key);
-                                    }
-                                }
-
-                                graphAssociativeData = tempAssociativeArray;
-
+                        var plotData = [];
+                        var isFirstIteration = true;
+                        for (var i = 0; i < keys.length; i++) {
+                            if (!isFirstIteration) {
+                                var temp = { name: keys[i], y: graphAssociativeData[keys[i]] };
+                            } else {
+                                var temp = { name: keys[i], y: graphAssociativeData[keys[i]], sliced: true, selected: true };
                             }
+                            plotData.push(temp);
+                            isFirstIteration = false;
+                        }
 
-                            var plotData = [];
-                            var isFirstIteration = true;
-                            for (var i = 0; i < keys.length; i++) {
-                                if (!isFirstIteration) {
-                                    var temp = { name: keys[i], y: graphAssociativeData[keys[i]] };
-                                } else {
-                                    var temp = { name: keys[i], y: graphAssociativeData[keys[i]], sliced: true, selected: true };
+                        //console.log(plotData);
+
+                        var myseries = [{
+                            name: columnName,
+                            colorByPoint: true,
+                            data: plotData
+                        }];
+
+                        // Build the chart
+                        $('#graphContainer').highcharts({
+                            chart: {
+                                plotBackgroundColor: null,
+                                plotBorderWidth: null,
+                                plotShadow: false,
+                                type: 'pie'
+                            },
+                            title: {
+                                text: 'Pie Chart : ' + columnName
+                            },
+                            tooltip: {
+                                pointFormat: '<b>{point.percentage:.1f}%</b>'
+                            },
+                            plotOptions: {
+                                pie: {
+                                    allowPointSelect: true,
+                                    cursor: 'pointer',
+                                    dataLabels: {
+                                        enabled: false
+                                    },
+                                    showInLegend: true
                                 }
-                                plotData.push(temp);
-                                isFirstIteration = false;
-                            }
+                            },
+                            series: myseries
+                        });
 
-                            //console.log(plotData);
-
-                            var myseries = [{
-                                name: columnName,
-                                colorByPoint: true,
-                                data: plotData
-                            }];
-
-                            // Build the chart
-                            $('#graphContainer').highcharts({
-                                chart: {
-                                    plotBackgroundColor: null,
-                                    plotBorderWidth: null,
-                                    plotShadow: false,
-                                    type: 'pie'
-                                },
-                                title: {
-                                    text: 'Pie Chart : ' + columnName
-                                },
-                                tooltip: {
-                                    pointFormat: '<b>{point.percentage:.1f}%</b>'
-                                },
-                                plotOptions: {
-                                    pie: {
-                                        allowPointSelect: true,
-                                        cursor: 'pointer',
-                                        dataLabels: {
-                                            enabled: false
-                                        },
-                                        showInLegend: true
-                                    }
-                                },
-                                series: myseries
-                            });
-                        
                     } catch (err) {
                         showErrorMessage(err);
                     }
@@ -473,7 +473,9 @@
                                                 text: firstColumnName + ' vs ' + secondColumnName 
                                             },
                                             xAxis: {
-                                                title: firstColumnName,
+                                                title: {
+                                                    text: firstColumnName
+                                                },
                                                 categories: keys,
                                                 crosshair: true
                                             },
@@ -616,7 +618,9 @@
                                     text: firstColumnName
                                 },
                                 xAxis: {
-                                    title: firstColumnName,
+                                    title: {
+                                        text: firstColumnName
+                                    },
                                     categories: keys,
                                     crosshair: true
                                 },
@@ -653,6 +657,10 @@
 
                 }
             });
+        }
+
+        function generateScatterChart() {
+
         }
 
         // 7 bind to events triggered on the tree
