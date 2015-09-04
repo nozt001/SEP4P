@@ -703,7 +703,111 @@
                                                 var thirdColumnName = $("#thirdParameter").val();
                                                 var graphThirdColumnData = String(data);
 
+                                                try {
+                                                    if (graphThirdColumnData == '') {
+                                                        throw 'Enter a valid category parameter';
+                                                    }
 
+                                                    //Split data
+
+                                                    graphThirdColumnData = graphThirdColumnData.split(",");
+
+                                                    //Check if there are too many categories (Only upto 6 allowed)
+                                                    var uniqueCategories = [];
+                                                    $.each(graphThirdColumnData, function(i, el){
+                                                        if($.inArray(el, uniqueCategories) === -1) uniqueCategories.push(el);
+                                                    });
+
+                                                    if (uniqueCategories.length > 6) {
+                                                        throw 'Enter a parameter with less than or equal to 6 categories';
+                                                    }
+
+                                                    var myColorQueue = ['rgba(28,34,232,0.5)','rgba(242,139,48,0.5)','rgba(93,222,93,0.5)','rgba(78,237,219,0.5)','rgba(149,93,222,0.5)','rgba(222,11,88,0.5)'];
+
+                                                    console.log(uniqueCategories);
+                                                    
+                                                    var associativeArray = {};
+                                                    //Fill empty arrays into associative array for categories
+                                                    for (var i = 0; i < uniqueCategories.length; i++) {
+                                                        associativeArray[uniqueCategories[i]] = [];
+                                                    }
+
+                                                    for (var i = 0; i < graphFirstColumnData.length; i++) {
+                                                        associativeArray[graphThirdColumnData[i]].push([parseFloat(graphFirstColumnData[i]), parseFloat(graphSecondColumnData[i])]);
+                                                    }
+
+                                                    var myseries = [];
+                                                    for (var i = 0; i < uniqueCategories.length; i++) {
+                                                        myseries.push({
+                                                            name: uniqueCategories[i],
+                                                            color: myColorQueue.pop(),
+                                                            data: associativeArray[uniqueCategories[i]]
+                                                        });
+                                                    }
+
+                                                    $('#graphContainer').highcharts({
+                                                        chart: {
+                                                            type: 'scatter',
+                                                            zoomType: 'xy'
+                                                        },
+                                                        title: {
+                                                            text: firstColumnName + ' vs ' + secondColumnName + ' by ' + thirdColumnName
+                                                        },
+                                                        xAxis: {
+                                                            title: {
+                                                                enabled: true,
+                                                                text: firstColumnName
+                                                            },
+                                                            startOnTick: true,
+                                                            endOnTick: true,
+                                                            showLastLabel: true
+                                                        },
+                                                        yAxis: {
+                                                            title: {
+                                                                text: secondColumnName
+                                                            }
+                                                        },
+                                                        legend: {
+                                                            layout: 'vertical',
+                                                            align: 'left',
+                                                            verticalAlign: 'top',
+                                                            x: 100,
+                                                            y: 70,
+                                                            floating: true,
+                                                            backgroundColor: (Highcharts.theme && Highcharts.theme.legendBackgroundColor) || '#FFFFFF',
+                                                            borderWidth: 1
+                                                        },
+                                                        plotOptions: {
+                                                            scatter: {
+                                                                marker: {
+                                                                    radius: 5,
+                                                                    states: {
+                                                                        hover: {
+                                                                            enabled: true,
+                                                                            lineColor: 'rgb(100,100,100)'
+                                                                        }
+                                                                    }
+                                                                },
+                                                                states: {
+                                                                    hover: {
+                                                                        marker: {
+                                                                            enabled: false
+                                                                        }
+                                                                    }
+                                                                },
+                                                                tooltip: {
+                                                                    headerFormat: '<b>{series.name}</b><br>',
+                                                                    pointFormat: '{point.x} cm, {point.y} kg'
+                                                                }
+                                                            }
+                                                        },
+                                                        series: myseries
+                                                    });
+
+
+                                                } catch (err) {
+                                                    showErrorMessage(err);
+                                                }
                                             }
                                         });
                                     }
@@ -722,8 +826,6 @@
                                             color: 'rgba(119, 152, 191, .5)',
                                             data: plotdata
                                         }];
-
-                                        console.log("Is this printing?");
                                         
                                         $('#graphContainer').highcharts({
                                             chart: {
@@ -797,16 +899,6 @@
                     }
                 }
             });
-        }
-
-        // Stack overflow code for generating random color
-        function getRandomColor() {
-            var letters = '0123456789ABCDEF'.split('');
-            var color = '#';
-            for (var i = 0; i < 6; i++) {
-                color += letters[Math.floor(Math.random() * 16)];
-            }
-            return color;
         }
 
         // Method to show banner in chart exceptions
