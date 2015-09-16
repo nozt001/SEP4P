@@ -172,6 +172,8 @@
                     if ($("#firstParameter").val() == "") {
                         throw "Please enter a x-axis parameter";
                     }
+
+                    generateBarChart();
                 } else if (selectedChartType == 'scatterBtn') {
                     if ($("#firstParameter").val() == "") {
                         throw "Please enter a x-axis parameter";
@@ -179,121 +181,735 @@
                     if ($("#secondParameter").val() == "") {
                         throw "Please enter a y-axis parameter";
                     }
+                    generateScatterChart();
                 }
             } catch (err) {
-                $('#alertDiv').hide();
-                $("#alertDiv").html('<div class="alert alert-danger">' + err + '</div>');
-                $('#alertDiv').slideDown();
-                setTimeout(function () {
-                    $('#alertDiv').slideUp();
-                }, 2000);
+                showErrorMessage(err);
             }
 
         });
 
         function generatePieChart() {
-
             $.post('@Url.Action("RequestData","QueryAndExtraction")', { colName: $("#firstParameter").val() }, function (data, status) {
                 if (status == 'success') {
 
                     var columnName = $("#firstParameter").val();
                     var graphData = String(data);
 
-                    if (graphData == "") {
-                        throw "Enter a valid parameter name";
-                    }
-
-                    // Break data
-                    graphData = graphData.split(",");
-
-                    // Create key value pairs
-                    var graphAssociativeData = {};
-
-                    for (var i = 0; i < graphData.length; i++) {
-                        if (graphAssociativeData[graphData[i]] == undefined) {
-                            graphAssociativeData[graphData[i]] = 1;
-                        } else {
-                            graphAssociativeData[graphData[i]] += 1;
+                    try {
+                        if (graphData == "") {
+                            throw "Enter a valid parameter name";
                         }
-                    }
 
-                    //console.log(graphAssociativeData);
+                        // Break data
+                        graphData = graphData.split(",");
 
-                    var keys = [];
-                    for (var key in graphAssociativeData) {
-                        if (graphAssociativeData.hasOwnProperty(key)) {
-                            keys.push(key);
-                        }
-                    }
+                        // Create key value pairs
+                        var graphAssociativeData = {};
 
-                    
-
-                    var plotData = [];
-                    var isFirstIteration = true;
-                    for (var i = 0; i < keys.length; i++) {
-                        if (!isFirstIteration) {
-                            var temp = { name: keys[i], y: graphAssociativeData[keys[i]] };
-                        } else {
-                            var temp = { name: keys[i], y: graphAssociativeData[keys[i]], sliced:true, selected:true };
-                        }
-                        plotData.push(temp);
-                        isFirstIteration = false;
-                    }
-
-                    console.log(plotData);
-
-                    var myseries = [{
-                        name: columnName,
-                        colorByPoint: true,
-                        data: plotData
-                    }];
-
-                    // Build the chart
-                    $('#graphContainer').highcharts({
-                        chart: {
-                            plotBackgroundColor: null,
-                            plotBorderWidth: null,
-                            plotShadow: false,
-                            type: 'pie'
-                        },
-                        title: {
-                            text: 'Pie Chart : ' + columnName
-                        },
-                        tooltip: {
-                            pointFormat: '<b>{point.percentage:.1f}%</b>'
-                        },
-                        plotOptions: {
-                            pie: {
-                                allowPointSelect: true,
-                                cursor: 'pointer',
-                                dataLabels: {
-                                    enabled: false
-                                },
-                                showInLegend: true
+                        for (var i = 0; i < graphData.length; i++) {
+                            if (graphAssociativeData[graphData[i]] == undefined) {
+                                graphAssociativeData[graphData[i]] = 1;
+                            } else {
+                                graphAssociativeData[graphData[i]] += 1;
                             }
-                        },
-                        series: myseries
-                    });
+                        }
+
+                        //console.log(graphAssociativeData);
+
+                        var keys = [];
+                        for (var key in graphAssociativeData) {
+                            if (graphAssociativeData.hasOwnProperty(key)) {
+                                keys.push(key);
+                            }
+                        }
+
+                        // testData = ['5','65','45','3','23','3','102'];
+                        // If column has data that are integers and keys are too many, then try to group data
+                        if (keys.length >= 10 && !isNaN(graphData[0])) {
+                            var tempData = [];
+                            for (var i = 0; i < graphData.length; i++) {
+                                tempData.push(parseInt(graphData[i]));
+                            }
+                            var min = tempData.reduce(function (a, b, i, tempData) { return Math.min(a, b) });
+                            var max = tempData.reduce(function (a, b, i, tempData) { return Math.max(a, b) });
+
+                            console.log(min, max);
+
+                            min -= min % 10;
+                            max += 10 - (max % 10);
+                            var groupSize = (max - min) / 10;
+                            groupSize += 10 - groupSize % 10
+
+                            //create a associative array with this group size
+                            var tempAssociativeArray = {};
+                            var checkArray = [];
+                            for (var i = 0; i < (max - min) / groupSize; i++) {
+                                tempAssociativeArray[i * groupSize + min + '-' + (i * groupSize + min + groupSize - 1)] = 0;
+                                checkArray[i] = i * groupSize + min;
+                            }
+
+                            console.log(checkArray);
+
+                            for (var i = 0; i < tempData.length; i++) {
+                                var lastValue = checkArray[0];
+                                for (var j = 0; j < checkArray.length; j++) {
+                                    if (checkArray[j] > tempData[i]) {
+                                        break;
+                                    }
+                                    lastValue = checkArray[j];
+                                }
+
+                                console.log(lastValue);
+
+                                tempAssociativeArray[lastValue + '-' + (lastValue + groupSize - 1)] += 1;
+                            }
+
+                            console.log(tempAssociativeArray);
+
+
+                            //console.log(graphAssociativeData);
+
+                            keys = [];
+                            for (var key in tempAssociativeArray) {
+                                if (tempAssociativeArray.hasOwnProperty(key)) {
+                                    keys.push(key);
+                                }
+                            }
+
+                            graphAssociativeData = tempAssociativeArray;
+
+                        }
+
+                        var plotData = [];
+                        var isFirstIteration = true;
+                        for (var i = 0; i < keys.length; i++) {
+                            if (!isFirstIteration) {
+                                var temp = { name: keys[i], y: graphAssociativeData[keys[i]] };
+                            } else {
+                                var temp = { name: keys[i], y: graphAssociativeData[keys[i]], sliced: true, selected: true };
+                            }
+                            plotData.push(temp);
+                            isFirstIteration = false;
+                        }
+
+                        //console.log(plotData);
+
+                        var myseries = [{
+                            name: columnName,
+                            colorByPoint: true,
+                            data: plotData
+                        }];
+
+                        // Build the chart
+                        $('#graphContainer').highcharts({
+                            chart: {
+                                plotBackgroundColor: null,
+                                plotBorderWidth: null,
+                                plotShadow: false,
+                                type: 'pie'
+                            },
+                            title: {
+                                text: 'Pie Chart : ' + columnName
+                            },
+                            tooltip: {
+                                pointFormat: '<b>{point.percentage:.1f}%</b>'
+                            },
+                            plotOptions: {
+                                pie: {
+                                    allowPointSelect: true,
+                                    cursor: 'pointer',
+                                    dataLabels: {
+                                        enabled: false
+                                    },
+                                    showInLegend: true
+                                }
+                            },
+                            series: myseries
+                        });
+
+                    } catch (err) {
+                        showErrorMessage(err);
+                    }
                 }
             });
-
         }
 
-        // 7 bind to events triggered on the tree
-        //$('#jstree_demo_div').on("changed.jstree", function (e, data) {
-        //    console.log(data.selected);
-        //});
+        function generateBarChart() {
+            $.post('@Url.Action("RequestData","QueryAndExtraction")', { colName: $("#firstParameter").val() }, function (data, status) {
+                if (status == 'success') {
+                    var firstColumnName = $("#firstParameter").val();
+                    var graphFirstColumnData = String(data);
 
-        //$("#jstree_demo_div").jstree(options).on('loaded.jstree', function () {
-        //    $("#jstree_demo_div").jstree('open_all');
-        //});
+                    try {
 
-        //$("#jstree_demo_div").bind("loaded.jstree", function (event, data) {
-        //    // you get two params - event & data - check the core docs for a detailed description
-        //    $(this).jstree("open_all");
-        //});
+                        if (graphFirstColumnData == '') {
+                            throw 'Enter a valid x-axis parameter';
+                        }
 
-        //JavaScript Chart Code Starts Here
+                        var secondColumnName = $("#secondParameter").val();
+
+                        //Bar graph based on 2 parameters
+                        if (secondColumnName != '') {
+                            $.post('@Url.Action("RequestData","QueryAndExtraction")', { colName: $("#secondParameter").val() }, function (data, status) {
+                                if (status == 'success') {
+                                    var graphSecondColumnData = String(data);
+
+                                    try {
+                                        if (graphSecondColumnData == '') {
+                                            throw 'Enter a valid y-axis parameter';
+                                        }
+
+                                        graphFirstColumnData = graphFirstColumnData.split(",");
+                                        graphSecondColumnData = graphSecondColumnData.split(",");
+
+                                        //Check and change second column data to integers
+                                        if (isNaN(graphSecondColumnData[0])) {
+                                            throw 'Y-axis parameter should contain numerical values';
+                                        } else {
+                                            var temp = [];
+                                            for (var i = 0; i < graphSecondColumnData.length; i++) {
+                                                temp.push(parseFloat(graphSecondColumnData[i]));
+                                            }
+                                            graphSecondColumnData = temp;
+                                        }
+
+                                        // Create key value pairs
+                                        var graphAssociativeData = {};
+
+                                        for (var i = 0; i < graphFirstColumnData.length; i++) {
+                                            if (graphAssociativeData[graphFirstColumnData[i]] == undefined) {
+                                                graphAssociativeData[graphFirstColumnData[i]] = graphSecondColumnData[i];
+                                            } else {
+                                                graphAssociativeData[graphFirstColumnData[i]] = (graphAssociativeData[graphFirstColumnData[i]] + graphSecondColumnData[i])/2;
+                                            }
+                                        }
+
+                                        console.log(graphAssociativeData);
+
+                                        var keys = [];
+                                        for (var key in graphAssociativeData) {
+                                            if (graphAssociativeData.hasOwnProperty(key)) {
+                                                keys.push(key);
+                                            }
+                                        }
+
+                                        // If column has data that are integers and keys are too many, then try to group data
+                                        if (keys.length >= 10 && !isNaN(graphFirstColumnData[0])) {
+                                            var tempData = [];
+                                            for (var i = 0; i < graphFirstColumnData.length; i++) {
+                                                tempData.push(parseInt(graphFirstColumnData[i]));
+                                            }
+                                            var min = tempData.reduce(function (a, b, i, tempData) { return Math.min(a, b) });
+                                            var max = tempData.reduce(function (a, b, i, tempData) { return Math.max(a, b) });
+
+                                            console.log(min, max);
+
+                                            min -= min % 10;
+                                            max += 10 - (max % 10);
+                                            var groupSize = (max - min) / 10;
+                                            groupSize += 10 - groupSize % 10
+
+                                            //create a associative array with this group size
+                                            var tempAssociativeArray = {};
+                                            var checkArray = [];
+                                            for (var i = 0; i < (max - min) / groupSize; i++) {
+                                                tempAssociativeArray[i * groupSize + min + '-' + (i * groupSize + min + groupSize - 1)] = 0;
+                                                checkArray[i] = i * groupSize + min;
+                                            }
+
+                                            console.log(checkArray);
+
+                                            for (var i = 0; i < tempData.length; i++) {
+                                                var lastValue = checkArray[0];
+                                                for (var j = 0; j < checkArray.length; j++) {
+                                                    if (checkArray[j] > tempData[i]) {
+                                                        break;
+                                                    }
+                                                    lastValue = checkArray[j];
+                                                }
+
+                                                console.log(lastValue);
+
+                                                tempAssociativeArray[lastValue + '-' + (lastValue + groupSize - 1)] = (tempAssociativeArray[lastValue + '-' + (lastValue + groupSize - 1)] + graphSecondColumnData[i])/2;
+                                            }
+
+                                            console.log(tempAssociativeArray);
+
+
+                                            //console.log(graphAssociativeData);
+
+                                            keys = [];
+                                            for (var key in tempAssociativeArray) {
+                                                if (tempAssociativeArray.hasOwnProperty(key)) {
+                                                    keys.push(key);
+                                                }
+                                            }
+
+                                            graphAssociativeData = tempAssociativeArray;
+
+                                        }
+
+                                        var plotData = [];
+                                        for (var i = 0; i < keys.length; i++) {
+                                            var temp = graphAssociativeData[keys[i]];
+                                            plotData.push(Math.round(temp * 100) / 100);
+                                        }
+
+                                        //console.log(plotData);
+
+                                        var myseries = [{
+                                            name: secondColumnName,
+                                            data: plotData
+                                        }];
+
+                                        console.log(keys);
+                                        console.log(plotData);
+
+                                        $('#graphContainer').highcharts({
+                                            chart: {
+                                                type: 'column'
+                                            },
+                                            title: {
+                                                text: firstColumnName + ' vs ' + secondColumnName 
+                                            },
+                                            xAxis: {
+                                                title: {
+                                                    text: firstColumnName
+                                                },
+                                                categories: keys,
+                                                crosshair: true
+                                            },
+                                            yAxis: {
+                                                min: 0,
+                                                title: {
+                                                    text: secondColumnName
+                                                }
+                                            },
+                                            //tooltip: {
+                                            //    headerFormat: '<span style="font-size:10px">{point.key}</span><table>',
+                                            //    pointFormat: '<tr><td style="color:{series.color};padding:0">{series.name}: </td>' +
+                                            //        '<td style="padding:0"><b>{point.y:.1f} mm</b></td></tr>',
+                                            //    footerFormat: '</table>',
+                                            //    shared: true,
+                                            //    useHTML: true
+                                            //},
+                                            plotOptions: {
+                                                column: {
+                                                    pointPadding: 0.2,
+                                                    borderWidth: 0
+                                                }
+                                            },
+                                            series: myseries
+                                        });
+
+
+                                        
+                                    } catch (err) {
+                                        showErrorMessage(err);
+                                    }
+                                }
+                            });
+                        
+                        
+                        //Bar graph based on 1 parameter
+                        } else {
+
+                            // Break data
+                            graphFirstColumnData = graphFirstColumnData.split(",");
+
+                            // Create key value pairs
+                            var graphAssociativeData = {};
+
+                            for (var i = 0; i < graphFirstColumnData.length; i++) {
+                                if (graphAssociativeData[graphFirstColumnData[i]] == undefined) {
+                                    graphAssociativeData[graphFirstColumnData[i]] = 1;
+                                } else {
+                                    graphAssociativeData[graphFirstColumnData[i]] += 1;
+                                }
+                            }
+
+                            console.log(graphAssociativeData);
+
+                            var keys = [];
+                            for (var key in graphAssociativeData) {
+                                if (graphAssociativeData.hasOwnProperty(key)) {
+                                    keys.push(key);
+                                }
+                            }
+
+                            // testData = ['5','65','45','3','23','3','102'];
+                            // If column has data that are integers and keys are too many, then try to group data
+                            if (keys.length >= 10 && !isNaN(graphFirstColumnData[0])) {
+                                var tempData = [];
+                                for (var i = 0; i < graphFirstColumnData.length; i++) {
+                                    tempData.push(parseInt(graphFirstColumnData[i]));
+                                }
+                                var min = tempData.reduce(function (a, b, i, tempData) { return Math.min(a, b) });
+                                var max = tempData.reduce(function (a, b, i, tempData) { return Math.max(a, b) });
+
+                                console.log(min, max);
+
+                                min -= min % 10;
+                                max += 10 - (max % 10);
+                                var groupSize = (max - min) / 10;
+                                groupSize += 10 - groupSize % 10
+
+                                //create a associative array with this group size
+                                var tempAssociativeArray = {};
+                                var checkArray = [];
+                                for (var i = 0; i < (max - min) / groupSize; i++) {
+                                    tempAssociativeArray[i * groupSize + min + '-' + (i * groupSize + min + groupSize - 1)] = 0;
+                                    checkArray[i] = i * groupSize + min;
+                                }
+
+                                console.log(checkArray);
+
+                                for (var i = 0; i < tempData.length; i++) {
+                                    var lastValue = checkArray[0];
+                                    for (var j = 0; j < checkArray.length; j++) {
+                                        if (checkArray[j] > tempData[i]) {
+                                            break;
+                                        }
+                                        lastValue = checkArray[j];
+                                    }
+
+                                    console.log(lastValue);
+
+                                    tempAssociativeArray[lastValue + '-' + (lastValue + groupSize - 1)] += 1;
+                                }
+
+                                console.log(tempAssociativeArray);
+
+
+                                //console.log(graphAssociativeData);
+
+                                keys = [];
+                                for (var key in tempAssociativeArray) {
+                                    if (tempAssociativeArray.hasOwnProperty(key)) {
+                                        keys.push(key);
+                                    }
+                                }
+
+                                graphAssociativeData = tempAssociativeArray;
+
+                            }
+
+                            var plotData = [];
+                            for (var i = 0; i < keys.length; i++) {
+                                temp = graphAssociativeData[keys[i]];
+                                plotData.push(temp);
+                            }
+
+                            //console.log(plotData);
+
+                            var myseries = [{
+                                name: 'Frequency',
+                                data: plotData
+                            }];
+
+                            console.log(keys);
+                            console.log(plotData);
+
+                            $('#graphContainer').highcharts({
+                                chart: {
+                                    type: 'column'
+                                },
+                                title: {
+                                    text: firstColumnName
+                                },
+                                xAxis: {
+                                    title: {
+                                        text: firstColumnName
+                                    },
+                                    categories: keys,
+                                    crosshair: true
+                                },
+                                yAxis: {
+                                    min: 0,
+                                    title: {
+                                        text: 'Frequency'
+                                    }
+                                },
+                                //tooltip: {
+                                //    headerFormat: '<span style="font-size:10px">{point.key}</span><table>',
+                                //    pointFormat: '<tr><td style="color:{series.color};padding:0">{series.name}: </td>' +
+                                //        '<td style="padding:0"><b>{point.y:.1f} mm</b></td></tr>',
+                                //    footerFormat: '</table>',
+                                //    shared: true,
+                                //    useHTML: true
+                                //},
+                                plotOptions: {
+                                    column: {
+                                        pointPadding: 0.2,
+                                        borderWidth: 0
+                                    }
+                                },
+                                series: myseries
+                            });
+
+                        }
+
+
+
+                    } catch (err) {
+                        showErrorMessage(err);
+                    }
+
+                }
+            });
+        }
+
+        function generateScatterChart() {
+            $.post('@Url.Action("RequestData","QueryAndExtraction")', { colName: $("#firstParameter").val() }, function (data, status) {
+                if (status == 'success') {
+                    var firstColumnName = $("#firstParameter").val();
+                    var graphFirstColumnData = String(data);
+
+                    try {
+                        if (graphFirstColumnData == '') {
+                            throw "Enter a valid x-axis parameter";
+                        }
+                        
+                        // Break data
+                        graphFirstColumnData = graphFirstColumnData.split(",");
+                        console.log(graphFirstColumnData);
+
+                        if (isNaN(graphFirstColumnData[0])) {
+                            throw "X-axis parameter should contain numerical values"
+                        }
+
+                        $.post('@Url.Action("RequestData","QueryAndExtraction")', { colName: $("#secondParameter").val() }, function (data, status) {
+                            if (status = 'success') {
+                                var secondColumnName = $("#secondParameter").val();
+                                var graphSecondColumnData = String(data);
+
+                                try {
+                                    if (graphSecondColumnData == '') {
+                                        throw "Enter a valid y-axis parameter";
+                                    }
+
+                                    // Break data
+                                    graphSecondColumnData = graphSecondColumnData.split(",");
+
+                                    if (isNaN(graphSecondColumnData[0])) {
+                                        throw "Y-axis parameter should contain numerical values";
+                                    }
+
+                                    // Categorising Parameter Specified
+                                    if ($('#thirdParameter').val() != '') {
+                                        $.post('@Url.Action("RequestData","QueryAndExtraction")', { colName: $("#thirdParameter").val() }, function (data, status) {
+                                            if (status == 'success') {
+                                                var thirdColumnName = $("#thirdParameter").val();
+                                                var graphThirdColumnData = String(data);
+
+                                                try {
+                                                    if (graphThirdColumnData == '') {
+                                                        throw 'Enter a valid category parameter';
+                                                    }
+
+                                                    //Split data
+
+                                                    graphThirdColumnData = graphThirdColumnData.split(",");
+
+                                                    //Check if there are too many categories (Only upto 6 allowed)
+                                                    var uniqueCategories = [];
+                                                    $.each(graphThirdColumnData, function(i, el){
+                                                        if($.inArray(el, uniqueCategories) === -1) uniqueCategories.push(el);
+                                                    });
+
+                                                    if (uniqueCategories.length > 6) {
+                                                        throw 'Enter a parameter with less than or equal to 6 categories';
+                                                    }
+
+                                                    var myColorQueue = ['rgba(28,34,232,0.5)','rgba(242,139,48,0.5)','rgba(93,222,93,0.5)','rgba(78,237,219,0.5)','rgba(149,93,222,0.5)','rgba(222,11,88,0.5)'];
+
+                                                    console.log(uniqueCategories);
+                                                    
+                                                    var associativeArray = {};
+                                                    //Fill empty arrays into associative array for categories
+                                                    for (var i = 0; i < uniqueCategories.length; i++) {
+                                                        associativeArray[uniqueCategories[i]] = [];
+                                                    }
+
+                                                    for (var i = 0; i < graphFirstColumnData.length; i++) {
+                                                        associativeArray[graphThirdColumnData[i]].push([parseFloat(graphFirstColumnData[i]), parseFloat(graphSecondColumnData[i])]);
+                                                    }
+
+                                                    var myseries = [];
+                                                    for (var i = 0; i < uniqueCategories.length; i++) {
+                                                        myseries.push({
+                                                            name: uniqueCategories[i],
+                                                            color: myColorQueue.pop(),
+                                                            data: associativeArray[uniqueCategories[i]]
+                                                        });
+                                                    }
+
+                                                    $('#graphContainer').highcharts({
+                                                        chart: {
+                                                            type: 'scatter',
+                                                            zoomType: 'xy'
+                                                        },
+                                                        title: {
+                                                            text: firstColumnName + ' vs ' + secondColumnName + ' by ' + thirdColumnName
+                                                        },
+                                                        xAxis: {
+                                                            title: {
+                                                                enabled: true,
+                                                                text: firstColumnName
+                                                            },
+                                                            startOnTick: true,
+                                                            endOnTick: true,
+                                                            showLastLabel: true
+                                                        },
+                                                        yAxis: {
+                                                            title: {
+                                                                text: secondColumnName
+                                                            }
+                                                        },
+                                                        legend: {
+                                                            layout: 'vertical',
+                                                            align: 'left',
+                                                            verticalAlign: 'top',
+                                                            x: 100,
+                                                            y: 70,
+                                                            floating: true,
+                                                            backgroundColor: (Highcharts.theme && Highcharts.theme.legendBackgroundColor) || '#FFFFFF',
+                                                            borderWidth: 1
+                                                        },
+                                                        plotOptions: {
+                                                            scatter: {
+                                                                marker: {
+                                                                    radius: 5,
+                                                                    states: {
+                                                                        hover: {
+                                                                            enabled: true,
+                                                                            lineColor: 'rgb(100,100,100)'
+                                                                        }
+                                                                    }
+                                                                },
+                                                                states: {
+                                                                    hover: {
+                                                                        marker: {
+                                                                            enabled: false
+                                                                        }
+                                                                    }
+                                                                },
+                                                                tooltip: {
+                                                                    headerFormat: '<b>{series.name}</b><br>',
+                                                                    pointFormat: '{point.x} cm, {point.y} kg'
+                                                                }
+                                                            }
+                                                        },
+                                                        series: myseries
+                                                    });
+
+
+                                                } catch (err) {
+                                                    showErrorMessage(err);
+                                                }
+                                            }
+                                        });
+                                    }
+
+
+                                    //No categorising parameter
+                                    else {
+
+                                        var plotdata = [];
+                                        for (var i = 0; i < graphFirstColumnData.length; i++) {
+                                            plotdata.push([parseFloat(graphFirstColumnData[i]), parseFloat(graphSecondColumnData[i])]);
+                                        }
+
+                                        var myseries = [{
+                                            name: 'Patient',
+                                            color: 'rgba(119, 152, 191, .5)',
+                                            data: plotdata
+                                        }];
+                                        
+                                        $('#graphContainer').highcharts({
+                                            chart: {
+                                                type: 'scatter',
+                                                zoomType: 'xy'
+                                            },
+                                            title: {
+                                                text: firstColumnName + ' vs ' + secondColumnName
+                                            },
+                                            xAxis: {
+                                                title: {
+                                                    enabled: true,
+                                                    text: firstColumnName
+                                                },
+                                                startOnTick: true,
+                                                endOnTick: true,
+                                                showLastLabel: true
+                                            },
+                                            yAxis: {
+                                                title: {
+                                                    text: secondColumnName
+                                                }
+                                            },
+                                            legend: {
+                                                layout: 'vertical',
+                                                align: 'left',
+                                                verticalAlign: 'top',
+                                                x: 100,
+                                                y: 70,
+                                                floating: true,
+                                                backgroundColor: (Highcharts.theme && Highcharts.theme.legendBackgroundColor) || '#FFFFFF',
+                                                borderWidth: 1
+                                            },
+                                            plotOptions: {
+                                                scatter: {
+                                                    marker: {
+                                                        radius: 5,
+                                                        states: {
+                                                            hover: {
+                                                                enabled: true,
+                                                                lineColor: 'rgb(100,100,100)'
+                                                            }
+                                                        }
+                                                    },
+                                                    states: {
+                                                        hover: {
+                                                            marker: {
+                                                                enabled: false
+                                                            }
+                                                        }
+                                                    },
+                                                    tooltip: {
+                                                        headerFormat: '<b>{series.name}</b><br>',
+                                                        pointFormat: '{point.x} cm, {point.y} kg'
+                                                    }
+                                                }
+                                            },
+                                            series: myseries
+                                        });
+
+                                    }
+                                } catch (err) {
+                                    showErrorMessage(err);
+                                }
+
+                            }
+                        });
+
+                    } catch (err){
+                        showErrorMessage(err);
+                    }
+                }
+            });
+        }
+
+        // Method to show banner in chart exceptions
+        function showErrorMessage(err) {
+            $('#alertDiv').hide();
+            $("#alertDiv").html('<div class="alert alert-danger">' + err + '</div>');
+            $('#alertDiv').slideDown();
+            setTimeout(function () {
+                $('#alertDiv').slideUp();
+            }, 2000);
+        }
 
     });
 

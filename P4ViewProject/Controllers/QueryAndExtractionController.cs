@@ -139,7 +139,7 @@ namespace P4ViewProject.Controllers
                 string result = "";
 
                 foreach (DataRow row in data.Data.Rows) {
-                    resultColumn.Add((string)row[colName]);
+                    resultColumn.Add(row[colName].ToString());
                 }
 
                 result = String.Join(",", resultColumn.ToArray());
