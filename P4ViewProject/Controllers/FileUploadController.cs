@@ -132,7 +132,6 @@ namespace P4ViewProject.Controllers
 
             }
 
-
             SqlConnection.Close();
             ViewBag.TableInfo = tableInfos;//tableInfos(fname);
 
