@@ -52,7 +52,7 @@ namespace P4ViewProject.Controllers
         {
             if ( String.IsNullOrEmpty(filename) )
             {
-                filename = "Patient.csv"; 
+                //filename = "Patient.csv"; 
             }
 
             string csvFilePath = getFullPath(filename);
@@ -232,7 +232,7 @@ namespace P4ViewProject.Controllers
 
             sqlConn.commandExecution("Insert ");
             string Feedback = string.Empty;
-            string connString = ConfigurationManager.ConnectionStrings["DefaultConnection"].ConnectionString;
+            string connString = ConfigurationManager.ConnectionStrings[Constants.dbName].ConnectionString;
 
             //make our connection and dispose at the end
             using (SqlConnection conn = new SqlConnection(connString))
@@ -276,12 +276,14 @@ namespace P4ViewProject.Controllers
             {
                 try
                 {
+                    /*
                     if (caller == "insertdb")
                     {
                         // If this method is called after insert into DB, copy the file with DONE_ prefix
                         // and delete the original one
                         System.IO.File.Copy(delFilePath, donefile, true);
                     }
+                     * */
                     System.IO.File.Delete(delFilePath);
                     return "File Deleted";
                 }
@@ -299,6 +301,7 @@ namespace P4ViewProject.Controllers
         public string InsertOneFile(string filename)
         {
             InsertCsvToDb(filename);
+            System.Threading.Thread.Sleep(2000);
             deleteCSVFile(filename, "insertdb");
 
             return "Return the FeedBack";

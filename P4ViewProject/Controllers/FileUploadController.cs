@@ -71,8 +71,22 @@ namespace P4ViewProject.Controllers
         
         public ActionResult Delete(string filename)
         {
-            // delete the file 
-            //deleteCSVFile(filename, string.Empty);
+            var delFilePath = Request.MapPath(Constants.CsvFilesPath + filename);
+
+            if (System.IO.File.Exists(delFilePath))
+            {
+                try
+                {
+                    System.IO.File.Delete(delFilePath);
+                    //return "File Deleted";
+                }
+                catch (IOException e)
+                {
+                    //return "Exception: " + e;
+                }
+
+            }
+
 
             return RedirectToAction("Index");
         }
@@ -95,7 +109,6 @@ namespace P4ViewProject.Controllers
 
             // For the array -
             // 0-represents Catalog, 1-Schema, 2-TableName, 3-table type
-            //
             // restrict to get our filename schema not all
             tableRestriction[2] = fname;
             SqlConnection.ConnectionString =
@@ -114,15 +127,8 @@ namespace P4ViewProject.Controllers
                     DataType = info["DATA_TYPE"],
                     CharacterMax = info["CHARACTER_MAXIMUM_LENGTH"]
                 };
-
-
-            Debug.WriteLine("{0,-15}{1,-15}{2,-15}{3,-15}{4,-15}{5,-15}", "TableCatalog", "TABLE_SCHEMA",
-                "TABLE_NAME", "COLUMN_NAME", "DATA_TYPE", "CHARACTER_MAXIMUM_LENGTH");
             foreach (var row in selectedRows)
             {
-                Debug.WriteLine("{0,-15}{1,-15}{2,-15}{3,-15}{4,-15}", row.TableCatalog,
-                    row.TableSchema, row.TableName,  row.DataType, row.CharacterMax);
-                // Todo Add all the info into the TableInfo list with new object each time
                 tableInfos.Add( new TableInfo
                 {
                     ColumnName = row.ColumnName.ToString(),
