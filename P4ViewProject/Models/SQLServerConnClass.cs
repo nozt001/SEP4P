@@ -5,6 +5,7 @@ using System.Web;
 using System.Data.SqlClient;
 using System.Data;
 using System.Configuration;
+using Microsoft.Ajax.Utilities;
 
 namespace P4ViewProject.Models
 {
@@ -15,7 +16,8 @@ namespace P4ViewProject.Models
 
         public SQLServerConnClass()
         {
-            SqlConnection.ConnectionString = ConfigurationManager.ConnectionStrings["ViewSimulation"].ConnectionString;
+            SqlConnection.ConnectionString = 
+                ConfigurationManager.ConnectionStrings[Constants.dbName].ConnectionString;
         }
 
         public Dictionary <string, List<string>> getTables() {
@@ -26,7 +28,7 @@ namespace P4ViewProject.Models
             try
             {
                 SqlConnection.Open();
-                DataTable t = SqlConnection.GetSchema("Tables");
+                DataTable t = SqlConnection.GetSchema("Tables");;
 
                 foreach (DataRow row in t.Rows)
                 {

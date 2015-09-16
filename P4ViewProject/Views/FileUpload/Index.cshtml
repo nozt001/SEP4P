@@ -1,4 +1,8 @@
-﻿@model IEnumerable<string>
+﻿@using System.Web.Hosting
+@using Microsoft.AspNet.Identity
+@using P4ViewProject.Models;
+
+@model IEnumerable<string>
 
 @{
     ViewBag.Title = "Index";
@@ -44,8 +48,8 @@
                         count++;
                         <tr>
                             @{var name = fName;
-                              var link = @Url.Content("~/App_Data/UploadedFiles/") + name.Replace(" ", "%20");
-                              var dataFile = Server.MapPath("~/App_Data/UploadedFiles/" + name);
+                              var link = @Url.Content(P4ViewProject.Models.Constants.CsvFilesPath) + name.Replace(" ", "%20");
+                              var dataFile = HostingEnvironment.MapPath(P4ViewProject.Models.Constants.CsvFilesPath + name);
                               
                               FileInfo fInfo = new FileInfo(dataFile);
                               string fileSize = (fInfo.Length).ToString();

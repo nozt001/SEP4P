@@ -9,7 +9,7 @@
     string[] firstLine = new []{""};
    
     char[] delimiterChar = { ',' };
-    var dataFile = Server.MapPath("~/App_Data/UploadedFiles/" + @Model.Filename);
+    var dataFile = Server.MapPath(Constants.CsvFilesPath + @Model.Filename);
     string line = string.Empty;
     
     if (File.Exists(dataFile))

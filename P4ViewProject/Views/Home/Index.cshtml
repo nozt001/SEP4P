@@ -1,6 +1,10 @@
 ﻿@{
     ViewBag.Title = "Home Page";
 }
+@Styles.Render("~/Content/css/")
+@Scripts.Render("~/bundles/jquery")
+
+
 
 <div class="jumbotron">
     <h1>ASP.NET</h1>
@@ -33,3 +37,4 @@
 <ul>
     <li>@Html.ActionLink("Go to extraction page", "index", "QueryAndExtraction")</li>
 </ul>
+

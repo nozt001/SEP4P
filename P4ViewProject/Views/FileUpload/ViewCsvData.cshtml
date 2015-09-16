@@ -1,5 +1,8 @@
 ﻿@using P4ViewProject.Models;
 
+@Styles.Render("~/Content/css/")
+@Scripts.Render("~/bundles/jquery")
+
 @model P4ViewProject.Controllers.ViewDataViewModel
 @{
     var result = "";
@@ -27,44 +30,173 @@
     The first Row of the each csv table can be table header and organize this one,
 *@
 
-    <div class="container">
-    <div class="panel panel-primary">
+<div class="container">
+    <input type="hidden" name="startRow" value="1">
+    <input type="hidden" name="endRow" value="10">
+    <div class="row" style="padding: 5px;">
+        <div class="panel panel-primary" style="padding: 5px;">
+            <div class="panel-heading">
+                <div class="row">
+                    <div class="col-md-1">
+                        <h4 id="filename">@Model.Filename</div>
+                    <div class="col-md-1"> <p id="rowbadge" class="badge"></p></div>
+                </div>
 
-        <div class="panel-heading">@Model.Filename</div>
-        <table class="table">
-            @{bool headerLine = true; }
-            @foreach (string dataLine in userData)
-            {
-                <tr>
+            </div>
+            <div class="panel-body" id="mypanel">
+                <section id="tablesection" class="section">
+                </section>
+            </div>
+            <div class="panel-footer">
+                <div class="row">
+                    <div class="col-md-2">
+                        <select class="selectpicker">
+                            <option value="10">10 rec/p</option>
+                            <option value="25">25 rec/p</option>
+                            <option value="50">50 rec/p</option>
+                            <option value="75">75 rec/p</option>
+                            <option value="100">100 rec/p</option>
+                        </select>
+                    </div>
+                    <div class="col-md-10">
+                        <div id="page-selection"></div>
 
-                    @foreach (string dataItem in dataLine.Split(delimiterChar))
-                    {
-                        if (headerLine)
-                        {
-                            <th>
-                                @dataItem
-                            </th>
-                        }
-                        else
-                        {
-                            <td>
-                                @dataItem
-                            </td>
-                        }
-                    }
-                    @{headerLine = false;}
-                </tr>
-            }
+                    </div>
+                </div>
 
-        </table>
-        <ul class="pagination">
-            <li><a href="#">&laquo;</a></li>
-            <li class="active"><a href="#">1</a></li>
-            <li><a href="#">2</a></li>
-            <li><a href="#">3</a></li>
-            <li><a href="#">4</a></li>
-            <li><a href="#">&raquo;</a></li>
-        </ul>
+            </div>
+        </div>
+
     </div>
 </div>
+<script type="text/javascript">
 
+    $("document").ready(function () {
+
+        function readDataTable(filename, st, en) {
+            $.ajax({
+                url: "/FileUpload/ReadCsvFile",
+                type: "POST",
+                data: { filename: filename , start: st, end: en },
+                dataType: "json",
+                success: function(lines) {
+
+                    $.ajax({
+                        url: "/FileUpload/GetFileRowsNumber",
+                        type: "POST",
+                        data: { filename: $("#filename").text() },
+                        dataType: "text",
+                        success: function(data) {
+                            $("#rowbadge").html(data + ' Rows');
+                            //alert(data);
+                        },
+                        error: {
+                            //Display error Message here
+                        }
+                    });
+
+                    //alert("Working till here! " + $("#filename").text());
+                    //$("#part").html(lines);
+                    var $panelBody = $("#mypanel");
+
+                    var $tableConstruct = '<table class="table table-striped"> ';
+                    //var $theaders = $("#tableheader");
+                    //var $tdata = $("#tablebody");
+                    var buildHeader = true;
+                    var rowNo = $('input:hidden[name=startRow]').val();
+                    $.each(lines, function(i, line) {
+
+                        if (buildHeader === true) {
+                            $tableConstruct = $tableConstruct + '<thead> <tr> <th>Row No</th>';
+
+                            $.each(line, function(idx, title) {
+                                $tableConstruct = $tableConstruct + '<th>' + title + ' </th>';
+                            });
+                            // header is done so now it is false
+                            buildHeader = false;
+                            $tableConstruct = $tableConstruct + ' </tr> </thead> <tbody>';
+
+                        } else {
+                            
+                            $tableConstruct = $tableConstruct +
+                                '<tr> <td> <span class="label label-primary">' + rowNo + '</span></td>';
+                            $.each(line, function(idx, coldata) {
+                                $tableConstruct = $tableConstruct + '<td>' + coldata + ' </td>';
+                            });
+                            $tableConstruct = $tableConstruct + '</td>';
+                            rowNo++;
+                        };
+
+                    });
+
+                    $tableConstruct = $tableConstruct + '</tbody> </table>';
+                    $("#tablesection").html($tableConstruct);
+                    console.log(data);
+                },
+                error: function() {
+                }
+
+            }); // ajax
+
+        };// function readDatatable
+
+        readDataTable($("#filename").text(), 1, 10);
+
+
+
+
+        //var pageN = (parseInt($('#rowbadge').val()) / parseInt($('.selectpicker option:selected').val()));
+
+            $("select.selectpicker").change(function () {
+                // get the row per page
+                var selectRowPer = $(".selectpicker option:selected").val();
+
+                // assign the start and end rows 
+                $('input:hidden[name=endRow]').val(
+                     parseInt($('input:hidden[name=startRow]').val()) + parseInt(selectRowPer)
+                    );
+
+
+               // alert("[" + $('input:hidden[name=startRow]').val() + " - " + $('input:hidden[name=endRow]').val() + "]");
+                readDataTable($("#filename").text(),
+                    $('input:hidden[name=startRow]').val(),
+                    $('input:hidden[name=endRow]').val());
+            });
+
+            $('#page-selection').bootpag({
+                total: 5
+            }).on("page", function (event, /* page number here */ num) {
+                //$("#content").html("Insert content"); // some ajax content loading...
+                var selectRowPer = parseInt($('.selectpicker option:selected').val());
+                var totalRows = parseInt($('#rowbadge').val());
+                var stRow = parseInt(selectRowPer) * (num - 1) + 1;
+                var enRow = parseInt(selectRowPer) * num;
+
+                if (stRow > totalRows || enRow > totalRows) {
+                    $('input:hidden[name=startRow]').val(totalRows - selectRowPer);
+                    $('input:hidden[name=endRow]').val(totalRows);
+                } else {
+                    $('input:hidden[name=startRow]').val(stRow);
+                    $('input:hidden[name=endRow]').val(enRow);
+                };
+
+                stRow = $('input:hidden[name=startRow]').val();
+                enRow = $('input:hidden[name=endRow]').val();
+
+                // alert($('input:hidden[name=startRow]').val() + ' - ' + $('input:hidden[name=endRow]').val());
+                readDataTable($('#filename').text(), stRow, enRow);
+
+                $(this).bootpag({total: 10, maxVisible:5});
+            });
+     
+        // init bootpag
+
+    }); // document
+</script>
+
+
+
+
+
+
+<!---->div id="content">Dynamic Content goes here<!--div -->
