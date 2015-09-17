@@ -14,6 +14,7 @@ using System.Web.Mvc;
 
 namespace P4ViewProject.Controllers
 {
+    // [Authorize]
     public class FileUploadController : Controller
     {
 

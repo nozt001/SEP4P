@@ -36,10 +36,16 @@
     <div class="row" style="padding: 5px;">
         <div class="panel panel-primary" style="padding: 5px;">
             <div class="panel-heading">
-
-                        <h4 id="filename" style="padding: 5px;">@Model.Filename
-
-                        <p id="rowbadge" class="badge" style="padding: 12px; background-color: white; color: #33a6cc; border-radius:20px;"></p></div>
+                <div class="row">
+                    <div class="col-sm-2">
+                        <h4 id="filename">@Model.Filename</h4> 
+                    </div>
+                    <div class="col-sm-10" >
+                        <p id="rowbadge" class="badge" style="padding:  15px 10px 15px 10px ; background-color: white; color: #33a6aa; border-radius: 20px;">
+                        </p>
+                    </div>
+                </div>
+            </div>
 
             <div class="panel-body" id="mypanel">
                 <section id="tablesection" class="section">
