@@ -216,11 +216,12 @@
 
                 $.post('@Url.Action("CsvData", "QueryAndExtraction")', { 'csvData': tableString, 'title': extractionName, 'description': extractionDescription }, function (data, status) {
                     if (status == 'success') {
-                        console.log(result);
-                        Download(result);
+                        console.log(data);
+                        Download(data);
 
                         $.get('@Url.Action("Extractions","QueryAndExtraction")', function (data, status) {
                             if (status == 'success') {
+                                console.log ('Coming to extractions')
                                 $("#extractionsList").html(data);
                                 $("#extractionsBadge").html($("#extractionsCount").text());
                             }
