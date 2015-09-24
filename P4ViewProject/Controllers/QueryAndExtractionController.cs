@@ -20,7 +20,7 @@ namespace P4ViewProject.Controllers
         DataExtractionContext context = new DataExtractionContext();
         public static string select, from, where, otherClauses, queryDate;
 
-        // GET: QueryAndExtraction
+        // Returns the query and extraction view
         [HttpGet]
         public ActionResult Index()
         {
@@ -32,6 +32,7 @@ namespace P4ViewProject.Controllers
             return View();
         }
 
+        // Returns analyse results view
         [HttpGet]
         public ActionResult AnalyseResults() {
 
@@ -86,30 +87,13 @@ namespace P4ViewProject.Controllers
             sqlConn.retrieveData(query);
             data.Data = sqlConn.SqlTable;
 
-            //Temp save extract code
-
             select = selectText;
             from = fromText;
             where = whereText;
             queryDate = startDate;
             otherClauses = otherClauseText;
 
-
-
-            //
-
-            //int numRows = 0;
-            //ViewBag.numResultRows = 0;
-            //if (data.Data != null) {
-            //    ViewBag.numResultRows = data.Data.Rows.Count; 
-            //    numRows = data.Data.Rows.Count;
-            //}
-
-
-            //Tuple<PartialViewResult, int> myResult = new Tuple<PartialViewResult, int>(PartialView("ViewDataTable", data), numRows);
-
             return PartialView("ViewDataTable", data);
-            //return sqlConn.SqlTable.Rows.Count.ToString();
         }
 
         [HttpPost]
@@ -122,7 +106,6 @@ namespace P4ViewProject.Controllers
 
             StringBuilder sb = new StringBuilder();
             sb.Append(csvData);
-            // Write the stream contents to a new file named "AllTxtFiles.txt".
             using (StreamWriter outfile = new StreamWriter(path+ @"\myCsv.csv"))
             {
                 outfile.Write(sb.ToString());
@@ -183,20 +166,7 @@ namespace P4ViewProject.Controllers
 
         [HttpGet]
         public PartialViewResult Extractions() {
-            List<ExtractionData> extractionsList = context.DataExtracts.ToList();
-
-            //ExtractionData ed1 = new ExtractionData();
-            //ed1.Name = "Sam";
-            //ed1.QueryDate = "1/1/2014";
-
-            //ExtractionData ed2 = new ExtractionData();
-            //ed2.Name = "SamK";
-            //ed2.QueryDate = "2/1/2014";
-
-            //extractionsList.Add(ed1);
-            //extractionsList.Add(ed2);
-
-            
+            List<ExtractionData> extractionsList = context.DataExtracts.ToList();    
 
             return PartialView("Extractions", extractionsList);
         }
