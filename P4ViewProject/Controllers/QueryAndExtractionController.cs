@@ -7,6 +7,8 @@ using P4ViewProject.Models;
 using System.Data;
 using System.Text;
 using System.IO;
+using P4ViewProject.DAL;
+using System.Web.Script.Serialization;
 
 namespace P4ViewProject.Controllers
 {
@@ -14,7 +16,9 @@ namespace P4ViewProject.Controllers
     {
 
         private SQLServerConnClass sqlConn = new SQLServerConnClass();
-        public static ViewExtractedDataWrapperModel data = new ViewExtractedDataWrapperModel();       
+        public static ViewExtractedDataWrapperModel data = new ViewExtractedDataWrapperModel();
+        DataExtractionContext context = new DataExtractionContext();
+        public static string select, from, where, otherClauses, queryDate;
 
         // GET: QueryAndExtraction
         [HttpGet]
@@ -82,12 +86,24 @@ namespace P4ViewProject.Controllers
             sqlConn.retrieveData(query);
             data.Data = sqlConn.SqlTable;
 
-            int numRows = 0;
-            ViewBag.numResultRows = 0;
-            if (data.Data != null) {
-                ViewBag.numResultRows = data.Data.Rows.Count; 
-                numRows = data.Data.Rows.Count;
-            }
+            //Temp save extract code
+
+            select = selectText;
+            from = fromText;
+            where = whereText;
+            queryDate = startDate;
+            otherClauses = otherClauseText;
+
+
+
+            //
+
+            //int numRows = 0;
+            //ViewBag.numResultRows = 0;
+            //if (data.Data != null) {
+            //    ViewBag.numResultRows = data.Data.Rows.Count; 
+            //    numRows = data.Data.Rows.Count;
+            //}
 
 
             //Tuple<PartialViewResult, int> myResult = new Tuple<PartialViewResult, int>(PartialView("ViewDataTable", data), numRows);
@@ -97,7 +113,9 @@ namespace P4ViewProject.Controllers
         }
 
         [HttpPost]
-        public string CsvData(string csvData) {
+        public string CsvData(string csvData, string title, string description) {
+
+            title = title.Trim();
 
             string path = AppDomain.CurrentDomain.BaseDirectory;
             string fileName = "myCsv.csv";
@@ -109,6 +127,19 @@ namespace P4ViewProject.Controllers
             {
                 outfile.Write(sb.ToString());
             }
+
+            ExtractionData extraction = new ExtractionData();
+            extraction.Name = title;
+            extraction.Description = description;
+            extraction.SelectBox = select;
+            extraction.FromBox = from;
+            extraction.WhereBox = where;
+            extraction.QueryDate = queryDate;
+            extraction.OtherClausesBox = otherClauses;
+
+            context.DataExtracts.Add(extraction);
+            context.SaveChanges();
+
             return path+fileName;
         }
 
@@ -148,6 +179,36 @@ namespace P4ViewProject.Controllers
             catch {
                 return "";
             }
+        }
+
+        [HttpGet]
+        public PartialViewResult Extractions() {
+            List<ExtractionData> extractionsList = context.DataExtracts.ToList();
+
+            //ExtractionData ed1 = new ExtractionData();
+            //ed1.Name = "Sam";
+            //ed1.QueryDate = "1/1/2014";
+
+            //ExtractionData ed2 = new ExtractionData();
+            //ed2.Name = "SamK";
+            //ed2.QueryDate = "2/1/2014";
+
+            //extractionsList.Add(ed1);
+            //extractionsList.Add(ed2);
+
+            
+
+            return PartialView("Extractions", extractionsList);
+        }
+
+        [HttpPost]
+        public string GetExtractionInfo(string extractionName) {
+
+            var extraction = context.DataExtracts.Where(b => b.Name == extractionName).FirstOrDefault();
+            
+            ExtractionData extractionInfo = (ExtractionData)extraction;
+
+            return new JavaScriptSerializer().Serialize(extractionInfo);
         }
 
     }

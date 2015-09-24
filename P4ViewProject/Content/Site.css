@@ -126,3 +126,14 @@ textarea {
 .extrationsListItem {
     width: 100%;
 }
+
+#extractModalDialog {
+    width: 650px;
+    height: 500px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-top: -25px;
+    margin-left: -200px;
+    padding: 20px;
+}

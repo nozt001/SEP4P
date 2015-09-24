@@ -42,26 +42,8 @@
             </div>
         </div>
         <div class="panel panel-primary">
-            <div class="panel-heading">Previous Extractions</div>
-            <div class="panel-body" style="height: 300px; overflow: auto; padding: 0px">
-                <div class="list-group">
-                    <a href="#" class="list-group-item">
-                        <h4 class="list-group-item-heading">List group item heading</h4>
-                        <p class="list-group-item-text">...</p>
-                    </a>
-                    <a href="#" class="list-group-item">
-                        <h4 class="list-group-item-heading">List group item heading</h4>
-                        <p class="list-group-item-text">...</p>
-                    </a>
-                    <a href="#" class="list-group-item">
-                        <h4 class="list-group-item-heading">List group item heading</h4>
-                        <p class="list-group-item-text">...</p>
-                    </a>
-                    <a href="#" class="list-group-item">
-                        <h4 class="list-group-item-heading">List group item heading</h4>
-                        <p class="list-group-item-text">...</p>
-                    </a>
-                </div>
+            <div class="panel-heading">Previous Extractions <span id="extractionsBadge" class="badge" style="color: #428BCA; background-color:#FFFFFF">0</span></div>
+            <div id ="extractionsList" class="panel-body" style="height: 300px; overflow: auto; padding: 0px">
             </div>
         </div>
     </div>
@@ -102,7 +84,7 @@
                     <span style="font-family: cursive; font-size: large">No Results!</span>
                 </section>
                 
-                <input id="extractToCsvBtn" type="button" class="btn btn-success" value="Extract to CSV"/>
+                <input id="extractToCsvBtn" type="button" class="btn btn-success" data-toggle="modal" data-target="#myModal" value="Extract to CSV" />
                 <input id="analyseResultsBtn" type="button" onclick="window.location.href = '@Url.Action("AnalyseResults", "QueryAndExtraction")';" class="btn btn-success" value="Analyse Results" />
 
             </div>
@@ -110,6 +92,36 @@
     </div>
         
 </div>
+
+<div class="container">
+    <!-- Modal -->
+    <div class="modal fade" id="myModal" role="dialog">
+        <div class="modal-dialog" id="extractModalDialog">
+
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">Save Extraction</h4>
+                </div>
+                <div class="modal-body" style="height: 130px">
+                    <form id="myForm">
+                        <div class="form-group" style="width: 80%; float: left">
+                            <input id="extractionTitle" class= "form-control" spellcheck="false" placeholder="Enter an identifying name for extraction" /> <br />
+                            <textarea id="extractionDescription" rows="2" style="resize: none" class="form-control" spellcheck="false" placeholder="Enter a short extraction description." name="description"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" id="saveExtractionBtn" class="btn btn-default btn-primary" data-dismiss="modal">Save</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
 
 <iframe id="my_iframe" style="display:none;"></iframe>
 
@@ -119,6 +131,14 @@
 
             var lastFocus = undefined;
             var queryDatabasePanelHeight = $("#queryDatabasePanel").height();
+
+            $.get('@Url.Action("Extractions","QueryAndExtraction")', function (data, status) {
+                if (status == 'success') {
+                    $("#extractionsList").html(data);
+                    $("#extractionsBadge").html($("#extractionsCount").text());
+                    //alert($("#extractionsCount").text());
+                }
+            });
 
             $("#queryDatabasePanel").resize(function () {
                 $("#queryTreePanel").height($("#queryTreePanel").height() + ($("#queryDatabasePanel").height() - queryDatabasePanelHeight));
@@ -163,7 +183,7 @@
                 console.log(data.selected);
             });
 
-            $("#extractToCsvBtn").on('click', function (event) {
+            $("#saveExtractionBtn").on('click', function (event) {
                 //Get table
                 var table = $("#resultsTable")[0];
 
@@ -193,17 +213,27 @@
                     tableString += "\r\n";
                 }
 
+                var extractionName = $("#extractionTitle").val();
+                var extractionDescription = $("#extractionDescription").val();
 
-
-                console.log(tableString);
+                console.log(extractionName);
 
                 $.ajax({
                     url: "QueryAndExtraction/CsvData",
                     type: "post",
-                    data: { 'csvData': tableString },
+                    data: { 'csvData': tableString, 'title': extractionName, 'description': extractionDescription },
                     success: function (result) {
                         console.log(result);
                         Download(result);
+
+                        console.log('yessssssssssssssss');
+
+                        $.get('@Url.Action("Extractions","QueryAndExtraction")', function (data, status) {
+                            if (status == 'success') {
+                                $("#extractionsList").html(data);
+                                $("#extractionsBadge").html($("#extractionsCount").text());
+                            }
+                        });
 
                     }
                 });
@@ -213,6 +243,24 @@
             $('#jstree_demo_div').on('select_node.jstree', function (e, data) {
                 var selectedNode = data;
                 getNodeAndUpdateTextBox(selectedNode);
+            });
+
+            $(document).on('click', '.list-group .list-group-item', function(e){
+                //alert($(this).find('h4').text())
+
+                $.post('@Url.Action("GetExtractionInfo","QueryAndExtraction")', { extractionName: $(this).find('h4').text() }, function (data, status) {
+                    if (status == 'success') {
+                        var extractionObj = JSON.parse(data);
+                        console.log(extractionObj);
+                        $('#selectBox').val(extractionObj.SelectBox);
+                        $('#fromBox').val(extractionObj.FromBox);
+                        $('#whereBox').val(extractionObj.WhereBox);
+                        $('#otherClauseBox').val(extractionObj.OtherClausesBox);
+                        $('#timeCheckBox').click();
+                        $('#startDatePicker').val(extractionObj.QueryDate);
+                    }
+                });
+
             });
 
             function getNodeAndUpdateTextBox(selectedNode) {
@@ -298,6 +346,10 @@
 
             // data-jstree='{"icon":"./images/tree.png"}'
         });
+
+        function extractionItemProcess() {
+            console.log('Works')
+        }
 
         function Download(url) {
             document.getElementById('my_iframe').src = url;

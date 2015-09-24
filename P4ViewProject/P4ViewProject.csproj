@@ -169,10 +169,21 @@
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\ManageController.cs" />
     <Compile Include="Controllers\QueryAndExtractionController.cs" />
+    <Compile Include="DAL\DataExtractionContext.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201509171200127_InitialCreate.cs" />
+    <Compile Include="Migrations\201509171200127_InitialCreate.Designer.cs">
+      <DependentUpon>201509171200127_InitialCreate.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201509210754284_AddExtractionName.cs" />
+    <Compile Include="Migrations\201509210754284_AddExtractionName.Designer.cs">
+      <DependentUpon>201509210754284_AddExtractionName.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AccountViewModels.cs" />
+    <Compile Include="Models\ExtractionData.cs" />
     <Compile Include="Models\IdentityModels.cs" />
     <Compile Include="Models\ManageViewModels.cs" />
     <Compile Include="Models\SQLServerConnClass.cs" />
@@ -332,6 +343,7 @@
     <Content Include="Views\QueryAndExtraction\AnalyseResults.cshtml" />
     <Content Include="Views\QueryAndExtraction\Index.cshtml" />
     <Content Include="Views\Shared\ViewDataTable.cshtml" />
+    <Content Include="Views\Shared\Extractions.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\UploadedFiles\" />
@@ -342,6 +354,14 @@
     <Content Include="fonts\glyphicons-halflings-regular.eot" />
     <Content Include="packages.config" />
     <None Include="Project_Readme.html" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Migrations\201509171200127_InitialCreate.resx">
+      <DependentUpon>201509171200127_InitialCreate.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201509210754284_AddExtractionName.resx">
+      <DependentUpon>201509210754284_AddExtractionName.cs</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

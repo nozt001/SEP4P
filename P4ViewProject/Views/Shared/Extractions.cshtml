@@ -1,0 +1,15 @@
+﻿@model IEnumerable<P4ViewProject.Models.ExtractionData>
+
+@using P4ViewProject.Models;
+
+
+<div class="list-group">
+    @foreach (ExtractionData extraction in Model)
+    {
+        <a href="#" class="list-group-item" onclick="extractionItemProcess()">
+            <h4 class="list-group-item-heading">@extraction.Name</h4>
+            <p class="list-group-item-text">@extraction.QueryDate</p>
+        </a>
+    }
+    <div id="extractionsCount" style="display: none">@Model.Count()</div>
+</div>
