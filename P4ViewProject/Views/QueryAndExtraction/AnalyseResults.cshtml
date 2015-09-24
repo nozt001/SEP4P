@@ -302,12 +302,13 @@
                         }];
 
                         // Build the chart
-                        $('#graphContainer').highcharts({
+                        charts = new Highcharts.Chart({
                             chart: {
                                 plotBackgroundColor: null,
                                 plotBorderWidth: null,
                                 plotShadow: false,
-                                type: 'pie'
+                                type: 'pie',
+                                renderTo: 'graphContainer'
                             },
                             title: {
                                 text: 'Pie Chart : ' + columnName
@@ -466,9 +467,10 @@
                                         console.log(keys);
                                         console.log(plotData);
 
-                                        $('#graphContainer').highcharts({
+                                        charts = new Highcharts.Chart({
                                             chart: {
-                                                type: 'column'
+                                                type: 'column',
+                                                renderTo: 'graphContainer'
                                             },
                                             title: {
                                                 text: firstColumnName + ' vs ' + secondColumnName 
@@ -611,9 +613,10 @@
                             console.log(keys);
                             console.log(plotData);
 
-                            $('#graphContainer').highcharts({
+                            charts = new Highcharts.Chart({
                                 chart: {
-                                    type: 'column'
+                                    type: 'column',
+                                    renderTo : 'graphContainer'
                                 },
                                 title: {
                                     text: firstColumnName
@@ -745,10 +748,11 @@
                                                         });
                                                     }
 
-                                                    $('#graphContainer').highcharts({
+                                                    charts = new Highcharts.Chart({
                                                         chart: {
                                                             type: 'scatter',
-                                                            zoomType: 'xy'
+                                                            zoomType: 'xy',
+                                                            renderTo: 'graphContainer'
                                                         },
                                                         title: {
                                                             text: firstColumnName + ' vs ' + secondColumnName + ' by ' + thirdColumnName
@@ -827,10 +831,11 @@
                                             data: plotdata
                                         }];
                                         
-                                        $('#graphContainer').highcharts({
+                                        charts = new Highcharts.Chart({
                                             chart: {
                                                 type: 'scatter',
-                                                zoomType: 'xy'
+                                                zoomType: 'xy',
+                                                renderTo: 'graphContainer'
                                             },
                                             title: {
                                                 text: firstColumnName + ' vs ' + secondColumnName

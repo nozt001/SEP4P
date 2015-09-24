@@ -184,11 +184,8 @@
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AccountViewModels.cs" />
-<<<<<<< HEAD
-    <Compile Include="Models\ExtractionData.cs" />
-=======
+	<Compile Include="Models\ExtractionData.cs" />
     <Compile Include="Models\Constants.cs" />
->>>>>>> 181c684748c659cf94fe7b78d9f3ccf8166ec776
     <Compile Include="Models\IdentityModels.cs" />
     <Compile Include="Models\ManageViewModels.cs" />
     <Compile Include="Models\SQLServerConnClass.cs" />

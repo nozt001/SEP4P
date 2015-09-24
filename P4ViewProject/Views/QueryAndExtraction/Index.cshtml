@@ -127,18 +127,18 @@
 
 
     <script type="text/javascript">
-        $(document).ready(function () {
+    $(document).ready(function () {
 
-            var lastFocus = undefined;
-            var queryDatabasePanelHeight = $("#queryDatabasePanel").height();
+        var lastFocus = undefined;
+        var queryDatabasePanelHeight = $("#queryDatabasePanel").height();
 
-            $.get('@Url.Action("Extractions","QueryAndExtraction")', function (data, status) {
+        $.get('@Url.Action("Extractions","QueryAndExtraction")', function (data, status) {
                 if (status == 'success') {
                     $("#extractionsList").html(data);
                     $("#extractionsBadge").html($("#extractionsCount").text());
                     //alert($("#extractionsCount").text());
                 }
-            });
+        });
 
             $("#queryDatabasePanel").resize(function () {
                 $("#queryTreePanel").height($("#queryTreePanel").height() + ($("#queryDatabasePanel").height() - queryDatabasePanelHeight));
@@ -146,22 +146,18 @@
             });
 
             $("#runQueryBtn").click(function () {
-                $.ajax({
-                    url: "QueryAndExtraction/ViewData",
-                    type: "post",
-                    data: $("#myForm").serialize(),
-                    success: function (result) {
-                        // console.log(result);
-                        $("#partial").html(result);
+                $.post('@Url.Action("ViewData", "QueryAndExtraction")', $("#myForm").serialize(), function (data, status) {
+                    if (status == 'success') {
 
-                        $.ajax({
-                            url: "QueryAndExtraction/getRows",
-                            type: "get",
-                            success: function (numRows) {
-                                $("#resultsBadge").html(numRows);
+                        $("#partial").html(data);
+
+                        $.get('@Url.Action("getRows", "QueryAndExtraction")', function (data, status) {
+                            if (status == 'success') {
+                                $("#resultsBadge").html(data);
                             }
                         });
                     }
+
                 });
             });
 
@@ -218,15 +214,10 @@
 
                 console.log(extractionName);
 
-                $.ajax({
-                    url: "QueryAndExtraction/CsvData",
-                    type: "post",
-                    data: { 'csvData': tableString, 'title': extractionName, 'description': extractionDescription },
-                    success: function (result) {
+                $.post('@Url.Action("CsvData", "QueryAndExtraction")', { 'csvData': tableString, 'title': extractionName, 'description': extractionDescription }, function (data, status) {
+                    if (status == 'success') {
                         console.log(result);
                         Download(result);
-
-                        console.log('yessssssssssssssss');
 
                         $.get('@Url.Action("Extractions","QueryAndExtraction")', function (data, status) {
                             if (status == 'success') {
@@ -234,7 +225,6 @@
                                 $("#extractionsBadge").html($("#extractionsCount").text());
                             }
                         });
-
                     }
                 });
 
@@ -319,7 +309,7 @@
                                     lastFocus.val(lastFocus.val() + lsParents);
                                 }
 
-                                
+
                             }
                         }
                     }
