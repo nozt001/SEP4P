@@ -211,5 +211,16 @@ namespace P4ViewProject.Controllers
             return new JavaScriptSerializer().Serialize(extractionInfo);
         }
 
+
+        [HttpGet]
+        public PartialViewResult getResultsTable() {
+            
+            if (data.Data != null){
+                return (PartialView("ViewDataTable", data));
+            }
+
+            return null;
+        }
+
     }
 }

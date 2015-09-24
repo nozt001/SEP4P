@@ -132,6 +132,24 @@
         var lastFocus = undefined;
         var queryDatabasePanelHeight = $("#queryDatabasePanel").height();
 
+        $.get('@Url.Action("getResultsTable", "QueryAndExtraction")', function (data, status) {
+            if (status == 'success') {
+                console.log('This is ' + data);
+
+                if (data != '') {
+                    console.log('This is ' + data);
+                    $("#partial").html(data);
+
+                    $.get('@Url.Action("getRows", "QueryAndExtraction")', function (data, status) {
+                        if (status == 'success') {
+                            $("#resultsBadge").html(data);
+                        }
+                    });
+                }
+            }
+
+        });
+
         $.get('@Url.Action("Extractions","QueryAndExtraction")', function (data, status) {
                 if (status == 'success') {
                     $("#extractionsList").html(data);
