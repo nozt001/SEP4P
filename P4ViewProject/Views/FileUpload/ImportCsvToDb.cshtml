@@ -9,7 +9,7 @@
     string[] firstLine = new []{""};
    
     char[] delimiterChar = { ',' };
-    var dataFile = Server.MapPath("~/App_Data/UploadedFiles/" + @Model.Filename);
+    var dataFile = Server.MapPath(Constants.CsvFilesPath + @Model.Filename);
     string line = string.Empty;
     
     if (File.Exists(dataFile))
@@ -63,23 +63,23 @@
 
                 <table class="table table-striped">
                     <thead>
-                        <tr>
-                            <th>Column Name</th>
-                            <th>Data Type</th>
-                            <th>Maximum Length</th>
-                        </tr>
+                    <tr>
+                        <th>Column Name</th>
+                        <th>Data Type</th>
+                        <th>Maximum Length</th>
+                    </tr>
                     </thead>
                     <tbody>
-                        @{
-                            foreach (TableInfo tinfo in tableInfos)
-                            {
-                                <tr>
-                                    <td>@tinfo.ColumnName</td>
-                                    <td>@tinfo.DataType</td>
-                                    <td>@tinfo.MaxLength</td>
-                                </tr>
-                            }
+                    @{
+                        foreach (TableInfo tinfo in tableInfos)
+                        {
+                            <tr>
+                                <td>@tinfo.ColumnName</td>
+                                <td>@tinfo.DataType</td>
+                                <td>@tinfo.MaxLength</td>
+                            </tr>
                         }
+                    }
                     </tbody>
                 </table>
 
@@ -93,25 +93,25 @@
                 <table class="table table-striped">
                     <thead>
 
-                        <tr>
-                            <th>Column Name</th>
-                            <th>Data</th>
-                        </tr>
+                    <tr>
+                        <th>Column Name</th>
+                        <th>Data</th>
+                    </tr>
                     </thead>
                     <tbody>
-                        @{
-                            if (firstLine.Length > 0)
+                    @{
+                        if (firstLine.Length > 0)
+                        {
+                            for (int i = 0; i < firstLine.Length; i++)
                             {
-                                for (int i = 0; i < firstLine.Length; i++)
-                                {
-                                    <tr>
-                                        <td>@colNames[i]</td>
-                                        <td>@firstLine[i]</td>
-                                    </tr>
+                                <tr>
+                                    <td>@colNames[i]</td>
+                                    <td>@firstLine[i]</td>
+                                </tr>
 
-                                }
                             }
                         }
+                    }
                     </tbody>
                 </table>
             </div>
@@ -120,31 +120,45 @@
 
     <div class="row">
         <div class="col-lg-2">
-            <button type="button" class="btn btn-success" name="insertBtn"
-                    onclick="location.href = '@Url.Action("InsertOneFile", "FileUpload", new {filename = @Model.Filename})'">
+            <button type="button" class="btn btn-success" id="insertBtn">
                 Import into Database
             </button>
         </div>
         <div class="col-lg-10" name="feedback">
-            <script type="text/javascript">
-                $("#insertBtn").click(function() {
-                    $.ajax({
-                        url: '/FileUpload/InsertOneFile',
-                        type: 'POST',
-                        data: 'filename= @Model.Filename',
-                        success: function(data) {
-                            //called when successful
-                        },
-                        error: function(e) {
-                            //called when there is an error
-
-                        }
-                    });
-                });
-            </script>
 
         </div>
     </div>
 </div>
+
+
+
+
+<script type="text/javascript">
+    
+ $(document).ready(function () {
+
+        $("#insertBtn").click(function () {
+            $.ajax({
+                url: '/CsvFile/InsertOneFile',
+                type: 'post',
+                data: 'filename=@Model.Filename',
+                success: function (data) {
+                    alert("Insert succeeded! ");
+                },
+                error: function (e) {
+                    alert("Insert failed! ");
+                    //called when there is an error
+
+                }
+            });
+        });
+
+    });
+</script>
+
+
+@*
+    onclick="location.href = '@Url.Action("InsertOneFile", "CsvFile", new { filename = @Model.Filename })'"
+*@
 
 

@@ -6,6 +6,10 @@
     <title>@ViewBag.Title - My ASP.NET Application</title>
     @Styles.Render("~/Content/css")
     @Scripts.Render("~/bundles/modernizr")
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+
+    <script type="text/javascript" src="jquery.bootpag.js"></script>
 
 </head>
 <body>
@@ -22,6 +26,7 @@
             <div class="navbar-collapse collapse">
                 <ul class="nav navbar-nav">
                     <li>@Html.ActionLink("Home", "Index", "Home")</li>
+                    <li>@Html.ActionLink("Query and Data Extract", "Index", "QueryAndExtraction")</li>
                     <li>@Html.ActionLink("Data Import", "Index", "FileUpload")</li>
                     <li>@Html.ActionLink("About", "About", "Home")</li>
                     <li>@Html.ActionLink("Contact", "Contact", "Home")</li>
@@ -38,8 +43,9 @@
         </footer>
     </div>
 
+
+    @RenderSection("scripts", required: false)
     @Scripts.Render("~/bundles/jquery")
     @Scripts.Render("~/bundles/bootstrap")
-    @RenderSection("scripts", required: false)
 </body>
 </html>
